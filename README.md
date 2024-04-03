@@ -47,8 +47,54 @@ In particular, franky provides the following new features/improvements:
 * Exceptions caused by libfranka are raised properly instead of being printed to stdout.
 * [We provide wheels for both Franka Research 3 and the older Franka Panda](#installation)
 
-## Installation
+## Setup
+To install franky, you have to follow three steps:
+1. Ensure that you are using a realtime kernel
+2. Ensure that the executing user has permission to run real-time applications
+3. Install franky via pip or build it from the sources
 
+### Installing a real-time kernel
+
+In order for franky to function properly, it requires the underlying OS to use a realtime kernel. 
+Otherwise, you might see `communication_constrains_violation` errors.
+
+To check whether your system is currently using a real-time kernel, type `uname -a`.
+You should see something like this:
+```bash
+$ uname -a
+Linux [PCNAME] 5.15.0-1056-realtime #63-Ubuntu SMP PREEMPT_RT ...
+```
+If it does not say PREEMPT_RT, you are not currently running a real-time kernel.
+
+There are multiple ways of installing a real-time kernel. You can [build it from source](https://frankaemika.github.io/docs/installation_linux.html#setting-up-the-real-time-kernel) or, if you are using Ubuntu, it can be [enabled through Ubuntu Pro](https://ubuntu.com/real-time).
+
+### Allowing the executing user to run real-time applications
+
+First, create a group `realtime` and add your user (or whoever is running franky) to this group:
+```bash
+sudo addgroup realtime
+sudo usermod -a -G realtime $(whoami)
+```
+
+Afterward, add the following limits to the real-time group in /etc/security/limits.conf:
+```
+@realtime soft rtprio 99
+@realtime soft priority 99
+@realtime soft memlock 102400
+@realtime hard rtprio 99
+@realtime hard priority 99
+@realtime hard memlock 102400
+```
+Log out and log in again to let the changes take effect.
+
+To verify that the changes were applied, check if your user is in the `realtime` group:
+```bash
+$ groups
+... realtime
+```
+If realtime is not listed in your groups, try rebooting.
+
+### Installing franky
 To start using franky with Python and libfranka *0.12.1*, just install it via
 ```bash
 pip install franky-panda
