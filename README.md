@@ -440,7 +440,7 @@ gripper.gripper_speed = 0.02; // [m/s]
 gripper.gripper_force = 20.0; // [N]
 
 // Preshape gripper before grasp, use the given speed
-gripper.move(50.0); // [mm]
+gripper.move(0.05); // [m]
 
 // Grasp an object of unknown width
 is_grasping = gripper.clamp();
@@ -450,7 +450,7 @@ is_grasping &= gripper.isGrasping();
 
 // Release an object and move to a given distance
 if (is_grasping) {
-  gripper.release(50.0);
+  gripper.release(0.05);
 }
 ```
 
