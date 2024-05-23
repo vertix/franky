@@ -35,14 +35,12 @@ target_link_libraries(franky PUBLIC Franka::Franka Eigen3::Eigen ruckig)
 
 
 if (BUILD_PYTHON_MODULE)
-    # Check if pybind11 exists as a subdirectory
-    find_package(Python3 COMPONENTS Interpreter Development)
-    set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
-
-    if (NOT DEFINED STUBSGEN_PYTHON_EXECUTABLE)
-        set(STUBSGEN_PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
+    if (NOT DEFINED PYTHON_EXECUTABLE)
+        find_package(Python3 COMPONENTS Interpreter Development)
+        set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
     endif ()
 
+    # Check if pybind11 exists as a subdirectory
     if (EXISTS pybind11)
         add_subdirectory(pybind11)
     else ()
@@ -58,7 +56,7 @@ if (BUILD_PYTHON_MODULE)
         # Build stubs
         add_custom_target(
                 franky-stubs
-                ${CMAKE_SOURCE_DIR}/generate_stubs.bash "${STUBSGEN_PYTHON_EXECUTABLE}" "${CMAKE_CURRENT_BINARY_DIR}" "$<TARGET_FILE:_franky-lib>"
+                ${CMAKE_SOURCE_DIR}/generate_stubs.bash "${PYTHON_EXECUTABLE}" "${CMAKE_CURRENT_BINARY_DIR}" "$<TARGET_FILE:_franky-lib>"
                 COMMENT "Generating Python stubs..."
                 DEPENDS _franky-lib
         )
