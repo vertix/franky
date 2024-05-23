@@ -3,10 +3,9 @@ cmake_minimum_required(VERSION 3.11)
 file(READ "VERSION" version)
 project(franky VERSION ${version} LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
-
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
 include(GNUInstallDirs)
-
 
 option(BUILD_EXAMPLES "Build example programs" ON)
 option(BUILD_PYTHON_MODULE "Build python module" ON)
@@ -38,6 +37,7 @@ target_link_libraries(franky PUBLIC Franka::Franka Eigen3::Eigen ruckig)
 if (BUILD_PYTHON_MODULE)
     # Check if pybind11 exists as a subdirectory
     find_package(Python3 COMPONENTS Interpreter Development)
+    set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
 
     if (NOT DEFINED STUBSGEN_PYTHON_EXECUTABLE)
         set(STUBSGEN_PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
@@ -62,7 +62,7 @@ if (BUILD_PYTHON_MODULE)
                 COMMENT "Generating Python stubs..."
                 DEPENDS _franky-lib
         )
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/stubs/_franky-stubs/__init__.pyi DESTINATION lib)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/stubs/_franky-stubs/__init__.pyi DESTINATION lib OPTIONAL)
 
         add_custom_target(_franky
                 DEPENDS _franky-lib
