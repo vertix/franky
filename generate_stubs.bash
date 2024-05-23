@@ -16,6 +16,7 @@ mkdir -p "${STUBS_GEN_DIR}"
 
 ${PYTHON} -m venv "${STUBS_GEN_DIR}/venv"
 source "${STUBS_GEN_DIR}/venv/bin/activate"
+pip install setuptools > /dev/null
 (cd ${SCRIPT_DIR} && python "setup.py" egg_info -e "${STUBS_GEN_DIR}" > /dev/null)
 pip install -r "${STUBS_GEN_DIR}/franky_panda.egg-info/requires.txt" > /dev/null
 pip install pybind11-stubgen==2.2.2 > /dev/null
