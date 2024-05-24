@@ -98,7 +98,7 @@ template<typename ControlSignalType>
 void robotMove(Robot &robot, std::shared_ptr<Motion<ControlSignalType>> motion, bool async) {
   robot.move(motion, true);
   if (!async) {
-    auto future = std::async(std::launch::async, &Robot::joinMotion, &robot);
+    auto future = std::async(std::launch::async, (bool(Robot::*)())&Robot::joinMotion, &robot);
     // Check if python wants to terminate every 100 ms
     bool python_terminating = false;
     while (future.wait_for(std::chrono::milliseconds(100)) == std::future_status::timeout) {
@@ -797,7 +797,12 @@ PYBIND11_MODULE(_franky, m) {
            py::call_guard<py::gil_scoped_release>())
       .def("move", &robotMove<franka::Torques>, "motion"_a, "asynchronous"_a = false,
            py::call_guard<py::gil_scoped_release>())
-      .def("join_motion", &Robot::joinMotion, py::call_guard<py::gil_scoped_release>())
+      .def("join_motion", [](Robot &robot, std::optional<double> timeout) {
+        if (timeout.has_value())
+          return robot.joinMotion<double, std::ratio<1>>(std::chrono::duration<double, std::ratio<1>>(timeout.value()));
+        return robot.joinMotion();
+      }, "timeout"_a = std::nullopt, py::call_guard<py::gil_scoped_release>())
+      .def("poll_motion", &Robot::pollMotion)
       .def("set_collision_behavior",
            py::overload_cast<
                const Robot::ScalarOrArray<7> &,

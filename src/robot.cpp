@@ -122,23 +122,6 @@ std::string Robot::fci_hostname() const {
   return fci_hostname_;
 }
 
-void Robot::joinMotion() {
-  std::unique_lock<std::mutex> lock(control_mutex_);
-  joinMotionUnsafe(lock);
-}
-
-void Robot::joinMotionUnsafe(std::unique_lock<std::mutex> &lock) {
-  while (motion_generator_running_)
-    control_finished_condition_.wait(lock);
-  if (control_thread_.joinable())
-    control_thread_.join();
-  if (control_exception_ != nullptr) {
-    auto control_exception = control_exception_;
-    control_exception_ = nullptr;
-    std::rethrow_exception(control_exception);
-  }
-}
-
 std::optional<ControlSignalType> Robot::current_control_signal_type() {
   std::unique_lock<std::mutex> lock(control_mutex_);
   if (!is_in_control_unsafe())

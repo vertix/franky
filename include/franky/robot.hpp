@@ -4,6 +4,7 @@
 #include <variant>
 #include <exception>
 #include <stdexcept>
+#include <optional>
 #include <franka/control_types.h>
 #include <franka/duration.h>
 #include <franka/exception.h>
@@ -128,7 +129,24 @@ class Robot : public franka::Robot {
 
   [[nodiscard]] std::optional<ControlSignalType> current_control_signal_type();
 
-  void joinMotion();
+  inline bool joinMotion() {
+    std::unique_lock<std::mutex> lock(control_mutex_);
+    return joinMotionUnsafe(lock);
+  }
+
+  template<class Rep, class Period>
+  inline bool joinMotion(const std::chrono::duration<Rep, Period> &timeout) {
+    std::unique_lock<std::mutex> lock(control_mutex_);
+    return joinMotionUnsafe<Rep, Period>(lock, timeout);
+  }
+
+  inline bool pollMotion() {
+    /*
+     * This function is used to check if the robot is still in motion. It is non-blocking and returns immediately. If
+     * errors occurred during the motion, they will be thrown by this function.
+     */
+    return joinMotion(std::chrono::milliseconds(0));
+  }
 
   // These helper functions are needed as the implicit template deduction does not work on subclasses of Motion
   inline void move(const std::shared_ptr<Motion<franka::CartesianPose>> &motion, bool async = false) {
@@ -191,7 +209,28 @@ class Robot : public franka::Robot {
 
   [[nodiscard]] bool is_in_control_unsafe() const;
 
-  void joinMotionUnsafe(std::unique_lock<std::mutex> &lock);
+  template<class Rep = long, class Period = std::ratio<1>>
+  bool joinMotionUnsafe(
+      std::unique_lock<std::mutex> &lock,
+      const std::optional<std::chrono::duration<Rep, Period>> &timeout = std::nullopt) {
+    while (motion_generator_running_) {
+      if (timeout.has_value()) {
+        if (control_finished_condition_.wait_for(lock, timeout.value()) == std::cv_status::timeout) {
+          return false;
+        }
+      } else {
+        control_finished_condition_.wait(lock);
+      }
+    }
+    if (control_thread_.joinable())
+      control_thread_.join();
+    if (control_exception_ != nullptr) {
+      auto control_exception = control_exception_;
+      control_exception_ = nullptr;
+      std::rethrow_exception(control_exception);
+    }
+    return true;
+  }
 
   template<typename ControlSignalType>
   void moveInternal(
