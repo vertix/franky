@@ -52,6 +52,25 @@ std::string affineToStr(const Affine &affine) {
   return ss.str();
 }
 
+std::string robotPoseToStr(const RobotPose &robot_pose) {
+  std::stringstream ss;
+  ss << "(ee_pose=" << affineToStr(robot_pose.end_effector_pose());
+  if (robot_pose.elbow_position().has_value())
+    ss << ", elbow=" << robot_pose.elbow_position().value();
+  ss << ")";
+  return ss.str();
+}
+
+std::string robotVelocityToStr(const RobotVelocity &robot_velocity) {
+  std::stringstream ss;
+  ss << "(ee_lin_vel=" << vecToStr(robot_velocity.end_effector_linear_velocity());
+  ss << ", ee_ang_vel=" << vecToStr(robot_velocity.end_effector_angular_velocity());
+  if (robot_velocity.elbow_velocity().has_value())
+    ss << ", elbow_vel=" << robot_velocity.elbow_velocity().value();
+  ss << ")";
+  return ss.str();
+}
+
 template<typename ControlSignalType>
 void mkMotionAndReactionClasses(py::module_ m, const std::string &control_signal_name) {
   py::class_<Motion<ControlSignalType>, std::shared_ptr<Motion<ControlSignalType>>> motion_class(
@@ -461,14 +480,7 @@ PYBIND11_MODULE(_franky, m) {
       .def("__rmul__",
            [](const RobotPose &robot_pose, const Affine &affine) { return affine * robot_pose; },
            py::is_operator())
-      .def("__repr__", [](const RobotPose &robot_pose) {
-        std::stringstream ss;
-        ss << "(ee_pose=" << affineToStr(robot_pose.end_effector_pose());
-        if (robot_pose.elbow_position().has_value())
-          ss << ", elbow=" << robot_pose.elbow_position().value();
-        ss << ")";
-        return ss.str();
-      })
+      .def("__repr__", robotPoseToStr)
       .def(py::pickle(
           [](const RobotPose &robot_pose) {  // __getstate__
             return py::make_tuple(robot_pose.end_effector_pose(), robot_pose.elbow_position());
@@ -480,6 +492,67 @@ PYBIND11_MODULE(_franky, m) {
           }
       ));
   py::implicitly_convertible<Affine, RobotPose>();
+
+  py::class_<RobotVelocity>(m, "RobotVelocity")
+      .def(py::init<Eigen::Vector3d, Eigen::Vector3d, std::optional<double>>(),
+           "end_effector_linear_velocity"_a,
+           "end_effector_angular_velocity"_a,
+           "elbow_position"_a = std::nullopt)
+      .def(py::init<const RobotVelocity &>()) // Copy constructor
+      .def("with_elbow_velocity", &RobotVelocity::with_elbow_velocity, "elbow_velocity"_a)
+      .def_property_readonly("end_effector_linear_velocity", &RobotVelocity::end_effector_linear_velocity)
+      .def_property_readonly("end_effector_angular_velocity", &RobotVelocity::end_effector_angular_velocity)
+      .def_property_readonly("elbow_velocity", &RobotVelocity::elbow_velocity)
+      .def("__rmul__",
+           [](const RobotVelocity &robot_velocity, const Affine &affine) { return affine * robot_velocity; },
+           py::is_operator())
+      .def("__repr__", robotVelocityToStr)
+      .def(py::pickle(
+          [](const RobotVelocity &robot_velocity) {  // __getstate__
+            return py::make_tuple(
+                robot_velocity.end_effector_linear_velocity(),
+                robot_velocity.end_effector_angular_velocity(),
+                robot_velocity.elbow_velocity());
+          },
+          [](const py::tuple &t) {  // __setstate__
+            if (t.size() != 3)
+              throw std::runtime_error("Invalid state!");
+            return RobotVelocity(
+                t[0].cast<Eigen::Vector3d>(), t[1].cast<Eigen::Vector3d>(), t[2].cast<std::optional<double>>());
+          }
+      ));
+
+  py::class_<CartesianState>(m, "CartesianState")
+      .def(py::init<RobotPose, std::optional<RobotVelocity>>(),
+           "pose"_a,
+           "velocity"_a = std::nullopt)
+      .def(py::init<const CartesianState &>()) // Copy constructor
+      .def("transform", &CartesianState::transform, "transform"_a)
+      .def("with_velocity", &CartesianState::with_velocity, "velocity"_a)
+      .def_property_readonly("pose", &CartesianState::pose)
+      .def_property_readonly("velocity", &CartesianState::velocity)
+      .def("__rmul__",
+           [](const CartesianState &cartesian_state, const Affine &affine) { return affine * cartesian_state; },
+           py::is_operator())
+      .def("__repr__", [](const CartesianState &cartesian_state) {
+        std::stringstream ss;
+        ss << "(pose=" << robotPoseToStr(cartesian_state.pose());
+        if (cartesian_state.velocity().has_value())
+          ss << ", velocity=" << robotVelocityToStr(cartesian_state.velocity().value());
+        ss << ")";
+        return ss.str();
+      })
+      .def(py::pickle(
+          [](const CartesianState &cartesian_state) {  // __getstate__
+            return py::make_tuple(cartesian_state.pose(), cartesian_state.velocity());
+          },
+          [](const py::tuple &t) {  // __setstate__
+            if (t.size() != 2)
+              throw std::runtime_error("Invalid state!");
+            return CartesianState(t[0].cast<RobotPose>(), t[1].cast<std::optional<RobotVelocity>>());
+          }
+      ));
+  py::implicitly_convertible<RobotPose, CartesianState>();
 
   py::class_<Kinematics::NullSpaceHandling>(m, "NullSpaceHandling")
       .def(py::init<size_t, double>(), "joint_index"_a, "value"_a)
@@ -849,6 +922,8 @@ PYBIND11_MODULE(_franky, m) {
       .def_property("relative_dynamics_factor", &Robot::relative_dynamics_factor, &Robot::setRelativeDynamicsFactor)
       .def_property_readonly("has_errors", &Robot::hasErrors)
       .def_property_readonly("current_pose", &Robot::currentPose)
+      .def_property_readonly("current_cartesian_velocity", &Robot::currentCartesianVelocity)
+      .def_property_readonly("current_cartesian_state", &Robot::currentCartesianState)
       .def_property_readonly("current_joint_positions", &Robot::currentJointPositions)
       .def_property_readonly("state", &Robot::state)
       .def_property_readonly("is_in_control", &Robot::is_in_control)

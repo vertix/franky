@@ -9,7 +9,7 @@
 
 namespace franky {
 
-RobotPose::RobotPose(const RobotPose &robot_pose) = default;
+RobotPose::RobotPose(const RobotPose &) = default;
 
 RobotPose::RobotPose(Eigen::Affine3d end_effector_pose, std::optional<double> elbow_position)
     : end_effector_pose_(std::move(end_effector_pose)), elbow_position_(elbow_position) {}

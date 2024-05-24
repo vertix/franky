@@ -14,6 +14,8 @@
 
 #include "franky/types.hpp"
 #include "franky/robot_pose.hpp"
+#include "franky/robot_velocity.hpp"
+#include "franky/cartesian_state.hpp"
 #include "franky/kinematics.hpp"
 #include "franky/motion/motion_generator.hpp"
 #include "franky/motion/motion.hpp"
@@ -72,14 +74,21 @@ class Robot : public franka::Robot {
   static constexpr double max_elbow_jerk{5000.0}; // [rad/s³]
 
   // Joint constraints
-  static constexpr std::array<double, 7> max_joint_velocity{
-      {2.175, 2.175, 2.175, 2.175, 2.610, 2.610, 2.610}}; // [rad/s]
-  static constexpr std::array<double, 7> max_joint_acceleration{
-      {15.0, 7.5, 10.0, 12.5, 15.0, 20.0, 20.0}}; // [rad/s²]
-  static constexpr std::array<double, 7> max_joint_jerk{
-      {7500.0, 3750.0, 5000.0, 6250.0, 7500.0, 10000.0, 10000.0}}; // [rad/s^3]
+  static constexpr std::array<double, 7>
+  max_joint_velocity{
+    { 2.175, 2.175, 2.175, 2.175, 2.610, 2.610, 2.610 }
+  }; // [rad/s]
+  static constexpr std::array<double, 7>
+  max_joint_acceleration{
+    { 15.0, 7.5, 10.0, 12.5, 15.0, 20.0, 20.0 }
+  }; // [rad/s²]
+  static constexpr std::array<double, 7>
+  max_joint_jerk{
+    { 7500.0, 3750.0, 5000.0, 6250.0, 7500.0, 10000.0, 10000.0 }
+  }; // [rad/s^3]
 
-  static constexpr size_t degrees_of_freedoms{7};
+  static constexpr size_t
+  degrees_of_freedoms{ 7 };
   static constexpr double control_rate{0.001}; // [s]
 
   //! Connects to a robot at the given FCI IP address.
@@ -113,7 +122,19 @@ class Robot : public franka::Robot {
 
   [[nodiscard]] bool hasErrors();
 
-  [[nodiscard]] RobotPose currentPose();
+  [[nodiscard]] inline RobotPose currentPose() {
+    return currentCartesianState().pose();
+  }
+
+  [[nodiscard]] inline RobotVelocity currentCartesianVelocity() {
+    return currentCartesianState().velocity().value();
+  }
+
+  [[nodiscard]] inline CartesianState currentCartesianState() {
+    auto s = state();
+    return {{Affine(Eigen::Matrix4d::Map(s.O_T_EE.data())), s.elbow[0]},
+            RobotVelocity(Vector6d::Map(s.O_dP_EE_c.data()), std::optional<double>(s.delbow_c[0]))};
+  }
 
   [[nodiscard]] Vector7d currentJointPositions();
 
@@ -185,7 +206,9 @@ class Robot : public franka::Robot {
 
  private:
   template<typename ControlSignalType>
-  using ControlFunc = std::function<ControlSignalType(const franka::RobotState &, franka::Duration)>;
+  using ControlFunc = std::function<
+  ControlSignalType(const franka::RobotState &, franka::Duration)
+  >;
   using MotionGeneratorVariant = std::variant<
       std::nullopt_t,
       MotionGenerator<franka::Torques>,
@@ -295,10 +318,10 @@ class Robot : public franka::Robot {
 
   template<size_t dims>
   std::array<double, dims> expand(const ScalarOrArray<dims> &input) {
-    if (std::holds_alternative<std::array<double, dims>>(input)) {
-      return std::get<std::array<double, dims>>(input);
-    } else if (std::holds_alternative<Eigen::Vector<double, dims>>(input)) {
-      return toStd<dims>(std::get<Eigen::Vector<double, dims>>(input));
+    if (std::holds_alternative < std::array < double, dims >> (input)) {
+      return std::get < std::array < double, dims >> (input);
+    } else if (std::holds_alternative < Eigen::Vector < double, dims >> (input)) {
+      return toStd<dims>(std::get < Eigen::Vector < double, dims >> (input));
     } else {
       std::array<double, dims> output;
       std::fill(output.begin(), output.end(), std::get<double>(input));
