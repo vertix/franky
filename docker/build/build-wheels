@@ -1,0 +1,46 @@
+#!/bin/bash
+set -e
+
+# Log python versions
+echo "Found the following Python versions:"
+for PYBIN in /opt/python/*/bin; do
+  if [[ "${PYBIN}" =~ ${PYBIN_SUPPORTED_VERSIONS} ]]; then
+    echo "${PYBIN}" | cut -d / -f 4
+  fi
+done
+
+# Build python wheels
+mkdir -p wheels
+mkdir -p dist
+mkdir -p dist_full
+
+# Compile wheels
+for PYBIN in /opt/python/*/bin; do
+  if [[ "${PYBIN}" =~ ${PYBIN_SUPPORTED_VERSIONS} ]]; then
+    "${PYBIN}/pip" wheel /code -w wheels/
+  fi
+done
+
+# Bundle external shared libraries into the wheels
+for whl in wheels/*.whl; do
+  if [[ "$whl" =~ wheels/franky_panda-.*\.whl ]]; then
+    auditwheel repair "$whl" -w dist_full/
+  else
+    cp "$whl" dist_full/
+  fi
+done
+
+# Install packages and test
+for PYBIN in /opt/python/*/bin/; do
+  if [[ "${PYBIN}" =~ ${PYBIN_SUPPORTED_VERSIONS} ]]; then
+    "${PYBIN}/pip" install franky-panda --no-index -f dist_full
+  fi
+done
+
+cp dist_full/franky_panda-*.whl dist/
+echo "Built the following wheels:"
+ls dist
+
+mkdir -p output
+libfranka_version=${{ inputs.libfranka-version }}
+zip -r "output/libfranka_${libfranka_version//./-}_wheels.zip" dist/

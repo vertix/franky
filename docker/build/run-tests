@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+
+# Test franky library
+cmake /code -DPYTHON_EXECUTABLE="/opt/python/cp311-cp311/bin/python"
+make -j$(nproc)
+make _franky test

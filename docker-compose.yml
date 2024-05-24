@@ -1,0 +1,6 @@
+services:
+  franky-build:
+    build: ./docker/build
+    volumes:
+      - ./:/code
+      - ./build:/build
