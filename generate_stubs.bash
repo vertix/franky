@@ -12,6 +12,7 @@ STUBS_GEN_DIR="${BUILD_DIR}/franky-stubs-gen"
 LIB_DIR="$(dirname "${LIB_FILE}")"
 
 cd "${BUILD_DIR}"
+rm -rf "${STUBS_GEN_DIR}"
 mkdir -p "${STUBS_GEN_DIR}"
 
 ${PYTHON} -m venv "${STUBS_GEN_DIR}/venv"
