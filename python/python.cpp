@@ -476,7 +476,9 @@ PYBIND11_MODULE(_franky, m) {
       .def("with_elbow_position", &RobotPose::with_elbow_position, "elbow_position"_a)
       .def_property_readonly("end_effector_pose", &RobotPose::end_effector_pose)
       .def_property_readonly("elbow_position", &RobotPose::elbow_position)
-      .def("__mul__", py::overload_cast<const RobotPose &, const Affine &>(&operator*), py::is_operator())
+      .def("__mul__",
+           [](const RobotPose &robot_pose, const Affine &affine) { return robot_pose * affine; },
+           py::is_operator())
       .def("__rmul__",
            [](const RobotPose &robot_pose, const Affine &affine) { return affine * robot_pose; },
            py::is_operator())
@@ -505,6 +507,9 @@ PYBIND11_MODULE(_franky, m) {
       .def_property_readonly("elbow_velocity", &RobotVelocity::elbow_velocity)
       .def("__rmul__",
            [](const RobotVelocity &robot_velocity, const Affine &affine) { return affine * robot_velocity; },
+           py::is_operator())
+      .def("__rmul__",
+           [](const RobotVelocity &robot_velocity, const Eigen::Quaterniond &quaternion) { return quaternion * robot_velocity; },
            py::is_operator())
       .def("__repr__", robotVelocityToStr)
       .def(py::pickle(

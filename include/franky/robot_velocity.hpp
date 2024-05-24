@@ -29,13 +29,17 @@ class RobotVelocity {
 
   [[nodiscard]] franka::CartesianVelocities as_franka_velocity() const;
 
-  [[nodiscard]] inline RobotVelocity transform(const Affine &transform) const {
-    return RobotVelocity(
-        transform * end_effector_linear_velocity_, transform * end_effector_angular_velocity_, elbow_velocity_);
+  [[nodiscard]] inline RobotVelocity transform(const Affine &affine) const {
+    return transform(affine.rotation());
+  }
+
+  template<typename RotationMatrixType>
+  [[nodiscard]] inline RobotVelocity transform(const RotationMatrixType &rotation) const {
+    return {rotation * end_effector_linear_velocity_, rotation * end_effector_angular_velocity_, elbow_velocity_};
   }
 
   [[nodiscard]] inline RobotVelocity with_elbow_velocity(const std::optional<double> elbow_velocity) const {
-    return RobotVelocity(end_effector_linear_velocity_, end_effector_angular_velocity_, elbow_velocity);
+    return {end_effector_linear_velocity_, end_effector_angular_velocity_, elbow_velocity};
   }
 
   [[nodiscard]] inline Eigen::Vector3d end_effector_linear_velocity() const {
@@ -56,8 +60,13 @@ class RobotVelocity {
   std::optional<double> elbow_velocity_;
 };
 
-inline RobotVelocity operator*(const Affine &transform, const RobotVelocity &robot_velocity) {
-  return robot_velocity.transform(transform);
+inline RobotVelocity operator*(const Affine &affine, const RobotVelocity &robot_velocity) {
+  return robot_velocity.transform(affine);
+}
+
+template<typename RotationMatrixType>
+inline RobotVelocity operator*(const RotationMatrixType &rotation, const RobotVelocity &robot_velocity) {
+  return robot_velocity.transform(rotation);
 }
 
 }  // namespace franky
