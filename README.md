@@ -134,26 +134,29 @@ Make sure that the built library can be found from Python by adapting your Pytho
 
 #### Using Docker
 
-To use franky within Docker we provide a [Dockerfile](docker/run/Dockerfile).
+To use franky within Docker we provide a [Dockerfile](docker/run/Dockerfile) and accompanying [docker-compose](docker-compose.yml) file.
 
 ```bash
 git clone https://github.com/timschneider42/franky.git
 cd franky/
-docker build -t franky --build-arg LIBFRANKA_VERSION=0.13.3 -f docker/run/Dockerfile .
+docker compose build franky-run
 ```
 
-To use another version of libfranka than the default (v.0.13.3) simply change the build argument. Then, to run the container simply:
-
+To use another version of libfranka than the default (v0.13.3) add a build argument:
 ```bash
-docker run -it --rm --network=host --privileged franky /bin/bash
+docker compose build franky-run --build-arg LIBFRANKA_VERSION=0.9.2
 ```
 
+To run the container:
+```bash
+docker compose run franky-run bash
+```
 The container requires access to the host machines network *and* elevated user rights to allow the docker user to set RT capabilities of the processes run from within it.
 
 
 #### Building franky with Docker
 
-For building franky and its wheels, we provide a Docker container that can be launched using docker-compose:
+For building franky and its wheels, we provide another Docker container that can also be launched using docker-compose:
 
 ```bash
 docker compose build

@@ -1,0 +1,26 @@
+#!/bin/bash
+set -e
+
+LIBFRANKA_VERSION="${LIBFRANKA_VERSION:-${LIBFRANKA_DEFAULT_VERSION}}"
+echo "Installing libfranka version ${LIBFRANKA_VERSION}..."
+TMP_DIR="$(mktemp -d)"
+git clone --recursive https://github.com/frankaemika/libfranka.git "${TMP_DIR}"
+cd "${TMP_DIR}"
+
+git checkout "${LIBFRANKA_VERSION}"
+
+# Cherry-pick missing imports commit
+git config user.email "john.doe@example.com"
+git config user.name "John Doe"
+if ! git merge-base --is-ancestor f1f46fb HEAD; then git cherry-pick -m 1 f1f46fb; fi
+git submodule update
+
+mkdir build
+cd build
+cmake -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF ..
+make -j "$(nproc)"
+make install
+
+cd /
+rm -rf "${TMP_DIR}"
+echo "libfranka installed successfully"

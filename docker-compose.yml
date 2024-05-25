@@ -1,6 +1,14 @@
 services:
   franky-build:
-    build: ./docker/build
+    build:
+      context: .
+      dockerfile: ./docker/build/Dockerfile
     volumes:
       - ./:/code
       - ./build:/build
+  franky-run:
+    build:
+      context: .
+      dockerfile: ./docker/run/Dockerfile
+    network_mode: "host"
+    privileged: true

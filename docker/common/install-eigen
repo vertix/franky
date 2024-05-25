@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+
+echo "Installing Eigen version ${EIGEN_VERSION}..."
+TMP_DIR="$(mktemp -d)"
+git clone https://gitlab.com/libeigen/eigen.git "${TMP_DIR}"
+cd "${TMP_DIR}"
+git checkout "${EIGEN_VERSION}"
+mkdir build
+cd build
+cmake ..
+make install
+cd /
+rm -rf "${TMP_DIR}"
+echo "Eigen installed successfully"

@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+echo "Setting up pip..."
+for PYBIN in /opt/python/*/bin; do
+  if [[ "${PYBIN}" =~ ${PYBIN_SUPPORTED_VERSIONS} ]]; then
+    "${PYBIN}/pip" install setuptools wheel --user
+  fi
+done
+echo "pip set up successfully"
