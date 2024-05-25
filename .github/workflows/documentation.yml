@@ -17,7 +17,7 @@ jobs:
       run: sudo apt-get update && sudo apt-get -y install ${dependency_packages}
 
     - name: build
-      run: cd doc && doxygen ./Doxyfile
+      run: cd doc && VERSION=$(cat ../VERSION) doxygen ./Doxyfile
 
     - name: deploy
       uses: peaceiris/actions-gh-pages@v3
