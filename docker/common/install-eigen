@@ -9,7 +9,7 @@ git checkout "${EIGEN_VERSION}"
 mkdir build
 cd build
 cmake ..
-make install
+sudo make install || make install
 cd /
 rm -rf "${TMP_DIR}"
 echo "Eigen installed successfully"

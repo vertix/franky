@@ -9,7 +9,7 @@ git checkout "v${CATCH2_VERSION}"
 mkdir build
 cd build
 cmake -DCATCH_BUILD_TESTING=OFF -DCATCH_ENABLE_WERROR=OFF -DCATCH_INSTALL_DOCS=OFF -DCATCH_INSTALL_HELPERS=OFF ..
-make install
+sudo make install || make install
 cd /
 rm -rf "${TMP_DIR}"
 echo "Catch2 installed successfully"

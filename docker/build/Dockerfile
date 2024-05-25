@@ -11,6 +11,8 @@ RUN set -a && . /tmp/dependency_versions && set +a \
     && /tmp/common/install-dependencies
 
 ARG PYBIN_SUPPORTED_VERSIONS="cp3(7m|8|9|10|11|12)"
+# Preserve argument for runtime
+ENV PYBIN_SUPPORTED_VERSIONS=${PYBIN_SUPPORTED_VERSIONS}
 RUN /tmp/common/manylinux-setup-pip
 
 # Set working directory
@@ -19,7 +21,7 @@ RUN mkdir -p /build
 VOLUME /code
 VOLUME /build
 WORKDIR /build
-ADD docker/build/build-wheels /usr/bin/
+ADD docker/common/manylinux-build-wheels /usr/bin/build-wheels
 ADD docker/build/run-tests /usr/bin/
 
 # Cleaning up

@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
 
+echo "Found the following Python versions:"
+for PYBIN in /opt/python/*/bin; do
+  if [[ "${PYBIN}" =~ ${PYBIN_SUPPORTED_VERSIONS} ]]; then
+     echo "${PYBIN}" | cut -d / -f 4
+  fi
+done
+
 echo "Setting up pip..."
 for PYBIN in /opt/python/*/bin; do
   if [[ "${PYBIN}" =~ ${PYBIN_SUPPORTED_VERSIONS} ]]; then

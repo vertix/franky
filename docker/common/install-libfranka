@@ -19,7 +19,7 @@ mkdir build
 cd build
 cmake -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF ..
 make -j "$(nproc)"
-make install
+sudo make install || make install
 
 cd /
 rm -rf "${TMP_DIR}"
