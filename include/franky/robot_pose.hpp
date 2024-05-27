@@ -39,7 +39,7 @@ class RobotPose {
   }
 
   [[nodiscard]] inline RobotPose changeEndEffectorFrame(const Affine &transform) const {
-    return {end_effector_pose_ * transform.inverse(), elbow_position_};
+    return {end_effector_pose_ * transform, elbow_position_};
   }
 
   [[nodiscard]] inline RobotPose with_elbow_position(const std::optional<double> elbow_position) const {
