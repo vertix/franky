@@ -11,13 +11,19 @@ namespace franky {
 
 class RobotVelocity {
  public:
+  RobotVelocity();
+
   RobotVelocity(const RobotVelocity &robot_velocity);
 
-  RobotVelocity(Twist end_effector_twist, std::optional<double> elbow_velocity = std::nullopt);
+  RobotVelocity(RobotVelocity &&robot_velocity) noexcept;
 
-  explicit RobotVelocity(const Vector7d &vector_repr, bool ignore_elbow = false);
+  // Suppress implicit conversion warning
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-conversion"
+  RobotVelocity(Twist end_effector_twist, double elbow_velocity = 0.0);
+#pragma clang diagnostic pop
 
-  explicit RobotVelocity(const Vector6d &vector_repr, std::optional<double> elbow_velocity = std::nullopt);
+  explicit RobotVelocity(const Vector7d &vector_repr);
 
   explicit RobotVelocity(franka::CartesianVelocities franka_velocity);
 
@@ -42,10 +48,6 @@ class RobotVelocity {
     return {end_effector_twist_.propagateThroughLink(offset_world_frame), elbow_velocity_};
   }
 
-  [[nodiscard]] inline RobotVelocity with_elbow_velocity(const std::optional<double> elbow_velocity) const {
-    return {end_effector_twist_, elbow_velocity};
-  }
-
   [[nodiscard]] inline Twist end_effector_twist() const {
     return end_effector_twist_;
   }
@@ -56,7 +58,7 @@ class RobotVelocity {
 
  private:
   Twist end_effector_twist_;
-  std::optional<double> elbow_velocity_;
+  double elbow_velocity_ = 0.0;
 };
 
 inline RobotVelocity operator*(const Affine &affine, const RobotVelocity &robot_velocity) {

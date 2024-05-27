@@ -532,10 +532,9 @@ PYBIND11_MODULE(_franky, m) {
   py::implicitly_convertible<Affine, RobotPose>();
 
   py::class_<RobotVelocity>(m, "RobotVelocity")
-      .def(py::init<Twist, std::optional<double>>(), "end_effector_twist"_a, "elbow_velocity"_a = std::nullopt)
+      .def(py::init<Twist, double>(), "end_effector_twist"_a, "elbow_velocity"_a = 0.0)
       .def(py::init<const RobotVelocity &>()) // Copy constructor
       .def("change_end_effector_frame", &RobotVelocity::changeEndEffectorFrame, "offset_world_frame"_a)
-      .def("with_elbow_velocity", &RobotVelocity::with_elbow_velocity, "elbow_velocity"_a)
       .def_property_readonly("end_effector_twist", &RobotVelocity::end_effector_twist)
       .def_property_readonly("elbow_velocity", &RobotVelocity::elbow_velocity)
       .def("__rmul__",
@@ -550,9 +549,9 @@ PYBIND11_MODULE(_franky, m) {
             return py::make_tuple(robot_velocity.end_effector_twist(), robot_velocity.elbow_velocity());
           },
           [](const py::tuple &t) {  // __setstate__
-            if (t.size() != 3)
+            if (t.size() != 2)
               throw std::runtime_error("Invalid state!");
-            return RobotVelocity(t[0].cast<Twist>(), t[1].cast<std::optional<double>>());
+            return RobotVelocity(t[0].cast<Twist>(), t[1].cast<double>());
           }
       ));
 

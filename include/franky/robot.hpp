@@ -133,7 +133,7 @@ class Robot : public franka::Robot {
   [[nodiscard]] inline CartesianState currentCartesianState() {
     auto s = state();
     return {{Affine(Eigen::Matrix4d::Map(s.O_T_EE.data())), s.elbow[0]},
-            RobotVelocity(Vector6d::Map(s.O_dP_EE_c.data()), std::optional<double>(s.delbow_c[0]))};
+            RobotVelocity(franka::CartesianVelocities(s.O_dP_EE_c, s.delbow_c))};
   }
 
   [[nodiscard]] Vector7d currentJointPositions();
