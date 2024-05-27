@@ -13,8 +13,6 @@ RobotVelocity::RobotVelocity() = default;
 
 RobotVelocity::RobotVelocity(const RobotVelocity &) = default;
 
-RobotVelocity::RobotVelocity(RobotVelocity &&) noexcept = default;
-
 RobotVelocity::RobotVelocity(Twist end_effector_twist, double elbow_velocity)
     : end_effector_twist_(std::move(end_effector_twist)),
       elbow_velocity_(elbow_velocity) {}

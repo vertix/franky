@@ -15,8 +15,6 @@ class RobotVelocity {
 
   RobotVelocity(const RobotVelocity &robot_velocity);
 
-  RobotVelocity(RobotVelocity &&robot_velocity) noexcept;
-
   // Suppress implicit conversion warning
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wimplicit-conversion"
