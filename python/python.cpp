@@ -559,7 +559,7 @@ PYBIND11_MODULE(_franky, m) {
       .def(py::init<const RobotPose &>(), "pose"_a)
       .def(py::init<const RobotPose &, const RobotVelocity &>(), "pose"_a,"velocity"_a)
       .def(py::init<const CartesianState &>()) // Copy constructor
-      .def("transform", &CartesianState::transform, "transform"_a)
+      .def("transform_with", &CartesianState::transformWith, "transform"_a)
       .def_property_readonly("pose", &CartesianState::pose)
       .def_property_readonly("velocity", &CartesianState::velocity)
       .def("__rmul__",

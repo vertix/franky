@@ -23,7 +23,7 @@ class CartesianState {
 
   CartesianState() = default;
 
-  [[nodiscard]] inline CartesianState transform(const Affine &transform) const {
+  [[nodiscard]] inline CartesianState transformWith(const Affine &transform) const {
     return {transform * pose_, transform * velocity_};
   }
 
