@@ -24,7 +24,7 @@ class CartesianState {
   CartesianState() = default;
 
   [[nodiscard]] inline CartesianState transform(const Affine &transform) const {
-    return {transform * pose_, velocity_};
+    return {transform * pose_, transform * velocity_};
   }
 
   [[nodiscard]] inline RobotPose pose() const {
