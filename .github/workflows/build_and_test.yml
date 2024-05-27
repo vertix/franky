@@ -24,9 +24,6 @@ jobs:
 
       - name: Install other dependencies
         run: |
-          set -a
-          . ./dependency_versions
-          set +a
           ./docker/common/install-dependencies
 
       - name: Configure & make

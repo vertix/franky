@@ -3,6 +3,10 @@ set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
+set -a
+. "${SCRIPT_DIR}/dependency_versions"
+set +a
+
 echo "Installing dependencies..."
 "${SCRIPT_DIR}/install-eigen"
 "${SCRIPT_DIR}/install-pybind11"

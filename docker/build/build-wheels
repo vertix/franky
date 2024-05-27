@@ -1,0 +1,4 @@
+#!/bin/bash
+set -e
+
+manylinux-build-wheels /code
