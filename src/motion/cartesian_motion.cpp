@@ -6,7 +6,7 @@
 namespace franky {
 
 CartesianMotion::CartesianMotion(
-    const RobotPose &target,
+    const CartesianState &target,
     ReferenceType reference_type,
     const Affine& frame,
     RelativeDynamicsFactor relative_dynamics_factor,

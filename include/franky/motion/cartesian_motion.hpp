@@ -13,7 +13,7 @@ namespace franky {
 class CartesianMotion : public CartesianWaypointMotion {
  public:
   explicit CartesianMotion(
-      const RobotPose &target,
+      const CartesianState &target,
       ReferenceType reference_type = ReferenceType::Absolute,
       const Affine &frame = Affine::Identity(),
       RelativeDynamicsFactor relative_dynamics_factor = 1.0,

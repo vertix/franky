@@ -803,7 +803,7 @@ PYBIND11_MODULE(_franky, m) {
 
   py::class_<CartesianMotion, CartesianWaypointMotion, std::shared_ptr<CartesianMotion>>(m, "CartesianMotion")
       .def(py::init<>([](
-               const RobotPose &target,
+               const CartesianState &target,
                ReferenceType reference_type,
                const std::optional<Affine> &frame,
                RelativeDynamicsFactor relative_dynamics_factor,
