@@ -592,7 +592,7 @@ PYBIND11_MODULE(_franky, m) {
       .def_property_readonly("velocity", &JointState::velocity)
       .def("__repr__", [](const JointState &joint_state) {
         std::stringstream ss;
-        ss << "(pose=" << vecToStr(joint_state.position())
+        ss << "(position=" << vecToStr(joint_state.position())
            << ", velocity=" << vecToStr(joint_state.velocity()) << ")";
         return ss.str();
       })
