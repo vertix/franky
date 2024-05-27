@@ -11,19 +11,20 @@
 #include "franky/motion/reference_type.hpp"
 #include "franky/util.hpp"
 #include "franky/motion/waypoint_motion.hpp"
+#include "franky/cartesian_state.hpp"
 
 namespace franky {
 
-class CartesianWaypointMotion : public WaypointMotion<franka::CartesianPose, RobotPose> {
+class CartesianWaypointMotion : public WaypointMotion<franka::CartesianPose, CartesianState> {
  public:
-  struct Params : WaypointMotion<franka::CartesianPose, RobotPose>::Params {
+  struct Params : WaypointMotion<franka::CartesianPose, CartesianState>::Params {
     Affine frame{Affine::Identity()};
-    WaypointMotion<franka::CartesianPose, RobotPose>::Params base_params{};
+    WaypointMotion<franka::CartesianPose, CartesianState>::Params base_params{};
   };
 
-  explicit CartesianWaypointMotion(const std::vector<Waypoint<RobotPose>> &waypoints);
+  explicit CartesianWaypointMotion(const std::vector<Waypoint<CartesianState>> &waypoints);
 
-  explicit CartesianWaypointMotion(const std::vector<Waypoint<RobotPose>> &waypoints, Params params);
+  explicit CartesianWaypointMotion(const std::vector<Waypoint<CartesianState>> &waypoints, Params params);
 
  protected:
 
@@ -35,7 +36,7 @@ class CartesianWaypointMotion : public WaypointMotion<franka::CartesianPose, Rob
   void setNewWaypoint(
       const franka::RobotState &robot_state,
       const std::optional<franka::CartesianPose> &previous_command,
-      const Waypoint<RobotPose> &new_waypoint,
+      const Waypoint<CartesianState> &new_waypoint,
       ruckig::InputParameter<7> &input_parameter) override;
 
   [[nodiscard]] std::tuple<Vector7d, Vector7d, Vector7d> getAbsoluteInputLimits() const override;
@@ -45,7 +46,7 @@ class CartesianWaypointMotion : public WaypointMotion<franka::CartesianPose, Rob
  private:
   Params params_;
 
-  RobotPose target_robot_pose_;
+  CartesianState target_state_;
   Affine ref_frame_;
 
   static inline Vector7d vec_cart_rot_elbow(double cart, double rot, double elbow) {

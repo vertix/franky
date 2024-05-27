@@ -786,7 +786,7 @@ PYBIND11_MODULE(_franky, m) {
   py::class_<CartesianWaypointMotion, Motion<franka::CartesianPose>, std::shared_ptr<CartesianWaypointMotion>>(
       m, "CartesianWaypointMotion")
       .def(py::init<>([](
-               const std::vector<Waypoint<RobotPose>> &waypoints,
+               const std::vector<Waypoint<CartesianState>> &waypoints,
                const std::optional<Affine> &frame = std::nullopt,
                RelativeDynamicsFactor relative_dynamics_factor = 1.0,
                bool return_when_finished = true) {
