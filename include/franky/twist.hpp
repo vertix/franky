@@ -12,8 +12,6 @@ class Twist {
 
   Twist(const Twist &twist) = default;
 
-  Twist(Twist &&twist) = default;
-
   Twist(Eigen::Vector3d linear_velocity, Eigen::Vector3d angular_velocity)
       : linear_velocity_(std::move(linear_velocity)), angular_velocity_(std::move(angular_velocity)) {}
 
