@@ -747,14 +747,14 @@ PYBIND11_MODULE(_franky, m) {
            "return_when_finished"_a = true,
            "finish_wait_factor"_a = 1.2);
 
-  py::class_<Waypoint<Vector7d>>(m, "JointWaypoint")
+  py::class_<Waypoint<JointState>>(m, "JointWaypoint")
       .def(py::init<>(
                [](
-                   const Vector7d &target,
+                   const JointState &target,
                    ReferenceType reference_type,
                    RelativeDynamicsFactor relative_dynamics_factor,
                    std::optional<double> minimum_time) {
-                 return Waypoint<Vector7d>{
+                 return Waypoint<JointState>{
                      target, reference_type, relative_dynamics_factor, minimum_time};
                }
            ),
@@ -762,10 +762,10 @@ PYBIND11_MODULE(_franky, m) {
            py::arg_v("reference_type", ReferenceType::Absolute, "_franky.ReferenceType.Absolute"),
            "relative_dynamics_factor"_a = 1.0,
            "minimum_time"_a = std::nullopt)
-      .def_readonly("target", &Waypoint<Vector7d>::target)
-      .def_readonly("reference_type", &Waypoint<Vector7d>::reference_type)
-      .def_readonly("relative_dynamics_factor", &Waypoint<Vector7d>::relative_dynamics_factor)
-      .def_readonly("minimum_time", &Waypoint<Vector7d>::minimum_time);
+      .def_readonly("target", &Waypoint<JointState>::target)
+      .def_readonly("reference_type", &Waypoint<JointState>::reference_type)
+      .def_readonly("relative_dynamics_factor", &Waypoint<JointState>::relative_dynamics_factor)
+      .def_readonly("minimum_time", &Waypoint<JointState>::minimum_time);
 
   py::class_<JointWaypointMotion, Motion<franka::JointPositions>, std::shared_ptr<JointWaypointMotion>>(
       m, "JointWaypointMotion")
