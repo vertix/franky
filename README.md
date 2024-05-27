@@ -274,7 +274,9 @@ In python, you can use them as follows:
 ```python
 import math
 from scipy.spatial.transform import Rotation
-from franky import JointWaypointMotion, JointWaypoint, JointPositionStopMotion, CartesianMotion, CartesianWaypointMotion, CartesianWaypoint, Affine, RobotPose, ReferenceType, CartesianPoseStopMotion
+from franky import JointWaypointMotion, JointWaypoint, JointPositionStopMotion, CartesianMotion, \
+    CartesianWaypointMotion, CartesianWaypoint, Affine, Twist, RobotPose, ReferenceType, CartesianPoseStopMotion, \
+    CartesianState, JointState
 
 # A point-to-point motion in the joint space
 m1 = JointWaypointMotion([JointWaypoint([-1.8, 1.1, 1.7, -2.1, -1.1, 1.6, -0.4])])
@@ -286,30 +288,51 @@ m2 = JointWaypointMotion([
     JointWaypoint([-1.9, 1.0, 1.6, -2.2, -1.2, 1.5, -0.5])
 ])
 
+# Intermediate waypoints also permit to specify target velocities. The default target velocity is 0, meaning that the
+# robot will stop at every waypoint.
+m3 = JointWaypointMotion([
+    JointWaypoint([-1.8, 1.1, 1.7, -2.1, -1.1, 1.6, -0.4]),
+    JointWaypoint(
+        JointState(
+            position=[-1.7, 1.2, 1.8, -2.0, -1.0, 1.7, -0.3],
+            velocity=[0.1, .0, 0.3, .0, .0, 0.15, .0])),
+    JointWaypoint([-1.9, 1.0, 1.6, -2.2, -1.2, 1.5, -0.5])
+])
+
 # Stop the robot
-m3 = JointPositionStopMotion()
+m4 = JointPositionStopMotion()
 
 # A linear motion in cartesian space
 quat = Rotation.from_euler("xyz", [0, 0, math.pi / 2]).as_quat()
-m4 = CartesianMotion(Affine([0.2, -0.4, 0.3], quat))
-m5 = CartesianMotion(RobotPose(Affine([0.2, -0.4, 0.3], quat), elbow_position=1.7)) # With target elbow angle
+m5 = CartesianMotion(Affine([0.2, -0.4, 0.3], quat))
+m6 = CartesianMotion(RobotPose(Affine([0.2, -0.4, 0.3], quat), elbow_position=1.7))  # With target elbow angle
 
 # A linear motion in cartesian space relative to the initial position
 # (Note that this motion is relative both in position and orientation. Hence, when the robot's end-effector is oriented
 # differently, it will move in a different direction)
-m6 = CartesianMotion(Affine([0.2, 0.0, 0.0]), ReferenceType.Relative)
+m7 = CartesianMotion(Affine([0.2, 0.0, 0.0]), ReferenceType.Relative)
 
 # Generalization of CartesianMotion that allows for multiple waypoints
-m7 = CartesianWaypointMotion([
-  CartesianWaypoint(RobotPose(Affine([0.2, -0.4, 0.3], quat), elbow_position=1.7)),
-  # The following waypoint is relative to the prior one and 50% slower
-  CartesianWaypoint(Affine([0.2, 0.0, 0.0]), ReferenceType.Relative, velocity_rel=0.5)
+m8 = CartesianWaypointMotion([
+    CartesianWaypoint(RobotPose(Affine([0.2, -0.4, 0.3], quat), elbow_position=1.7)),
+    # The following waypoint is relative to the prior one and 50% slower
+    CartesianWaypoint(Affine([0.2, 0.0, 0.0]), ReferenceType.Relative, velocity_rel=0.5)
+])
+
+# Cartesian waypoints also permit to specify target velocities
+m9 = CartesianWaypointMotion([
+    CartesianWaypoint(Affine([0.3, 0.3, 0.3])),
+    CartesianWaypoint(
+        CartesianState(
+            pose=Affine([0.4, 0.2, 0.3]),
+            velocity=Twist([0.1, -0.1, 0.0]))),
+    CartesianWaypoint(Affine([0.4, 0.2, 0.3]))
 ])
 
 # Stop the robot. The difference of JointPositionStopMotion to CartesianPoseStopMotion is that JointPositionStopMotion
 # stops the robot in joint position control mode while CartesianPoseStopMotion stops it in cartesian pose control mode.
 # The difference becomes relevant when asynchronous move commands are being sent (see below).
-m8 = CartesianPoseStopMotion()
+m10 = CartesianPoseStopMotion()
 ```
 
 Every motion and waypoint type allows to adapt the dynamics (velocity, acceleration and jerk) by setting the respective `velocity_rel`, `acceleration_rel`, and `jerk_rel` parameters.
