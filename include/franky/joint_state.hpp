@@ -17,8 +17,8 @@ class JointState {
   JointState(Vector7d position) : position_(std::move(position)), velocity_(Vector7d::Zero()) {}
 #pragma clang diagnostic pop
 
-  JointState(Vector7d pose, Vector7d velocity)
-      : position_(std::move(pose)), velocity_(std::move(velocity)) {}
+  JointState(Vector7d position, Vector7d velocity)
+      : position_(std::move(position)), velocity_(std::move(velocity)) {}
 
   JointState(const JointState &) = default;
 
