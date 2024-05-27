@@ -42,6 +42,7 @@ from ._franky import (
     JointState,
     CartesianWaypoint,
     Affine,
+    Twist,
     NullSpaceHandling,
     Duration,
     Errors,
