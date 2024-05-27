@@ -52,6 +52,13 @@ std::string affineToStr(const Affine &affine) {
   return ss.str();
 }
 
+std::string twistToStr(const Twist &twist) {
+  std::stringstream ss;
+  ss << "(lin=" << vecToStr(twist.linear_velocity())
+     << ", ang=" << vecToStr(twist.angular_velocity()) << ")";
+  return ss.str();
+}
+
 std::string robotPoseToStr(const RobotPose &robot_pose) {
   std::stringstream ss;
   ss << "(ee_pose=" << affineToStr(robot_pose.end_effector_pose());
@@ -63,8 +70,7 @@ std::string robotPoseToStr(const RobotPose &robot_pose) {
 
 std::string robotVelocityToStr(const RobotVelocity &robot_velocity) {
   std::stringstream ss;
-  ss << "(ee_lin_vel=" << vecToStr(robot_velocity.end_effector_linear_velocity());
-  ss << ", ee_ang_vel=" << vecToStr(robot_velocity.end_effector_angular_velocity());
+  ss << "(ee_twist=" << twistToStr(robot_velocity.end_effector_twist());
   if (robot_velocity.elbow_velocity().has_value())
     ss << ", elbow_vel=" << robot_velocity.elbow_velocity().value();
   ss << ")";
@@ -468,6 +474,36 @@ PYBIND11_MODULE(_franky, m) {
           }
       ));
 
+  py::class_<Twist>(m, "Twist")
+      .def(py::init<Eigen::Vector3d, Eigen::Vector3d>(), "linear_velocity"_a, "angular_velocity"_a)
+      .def(py::init<const Twist &>()) // Copy constructor
+      .def("propagate_through_link", &Twist::propagateThroughLink, "link_translation"_a)
+      .def("transform_with",
+           [](const Twist &twist, const Affine &affine) { return twist.transformWith(affine); },
+           "affine"_a)
+      .def("transform_with",
+           [](const Twist &twist, const Eigen::Quaterniond &quaterion) { return twist.transformWith(quaterion); },
+           "quaternion"_a)
+      .def_property_readonly("linear", &Twist::linear_velocity)
+      .def_property_readonly("angular", &Twist::angular_velocity)
+      .def("__rmul__",
+           [](const Twist &twist, const Affine &affine) { return affine * twist; },
+           py::is_operator())
+      .def("__rmul__",
+           [](const Twist &twist, const Eigen::Quaterniond &quaternion) { return quaternion * twist; },
+           py::is_operator())
+      .def("__repr__", &twistToStr)
+      .def(py::pickle(
+          [](const Twist &twist) {  // __getstate__
+            return py::make_tuple(twist.linear_velocity(), twist.angular_velocity());
+          },
+          [](const py::tuple &t) {  // __setstate__
+            if (t.size() != 2)
+              throw std::runtime_error("Invalid state!");
+            return Twist(t[0].cast<Eigen::Vector3d>(), t[1].cast<Eigen::Vector3d>());
+          }
+      ));
+
   py::class_<RobotPose>(m, "RobotPose")
       .def(py::init<Affine, std::optional<double>>(),
            "end_effector_pose"_a,
@@ -496,14 +532,11 @@ PYBIND11_MODULE(_franky, m) {
   py::implicitly_convertible<Affine, RobotPose>();
 
   py::class_<RobotVelocity>(m, "RobotVelocity")
-      .def(py::init<Eigen::Vector3d, Eigen::Vector3d, std::optional<double>>(),
-           "end_effector_linear_velocity"_a,
-           "end_effector_angular_velocity"_a,
-           "elbow_position"_a = std::nullopt)
+      .def(py::init<Twist, std::optional<double>>(), "end_effector_twist"_a, "elbow_velocity"_a = std::nullopt)
       .def(py::init<const RobotVelocity &>()) // Copy constructor
+      .def("change_end_effector_frame", &RobotVelocity::changeEndEffectorFrame, "offset_world_frame"_a)
       .def("with_elbow_velocity", &RobotVelocity::with_elbow_velocity, "elbow_velocity"_a)
-      .def_property_readonly("end_effector_linear_velocity", &RobotVelocity::end_effector_linear_velocity)
-      .def_property_readonly("end_effector_angular_velocity", &RobotVelocity::end_effector_angular_velocity)
+      .def_property_readonly("end_effector_twist", &RobotVelocity::end_effector_twist)
       .def_property_readonly("elbow_velocity", &RobotVelocity::elbow_velocity)
       .def("__rmul__",
            [](const RobotVelocity &robot_velocity, const Affine &affine) { return affine * robot_velocity; },
@@ -514,16 +547,12 @@ PYBIND11_MODULE(_franky, m) {
       .def("__repr__", robotVelocityToStr)
       .def(py::pickle(
           [](const RobotVelocity &robot_velocity) {  // __getstate__
-            return py::make_tuple(
-                robot_velocity.end_effector_linear_velocity(),
-                robot_velocity.end_effector_angular_velocity(),
-                robot_velocity.elbow_velocity());
+            return py::make_tuple(robot_velocity.end_effector_twist(), robot_velocity.elbow_velocity());
           },
           [](const py::tuple &t) {  // __setstate__
             if (t.size() != 3)
               throw std::runtime_error("Invalid state!");
-            return RobotVelocity(
-                t[0].cast<Eigen::Vector3d>(), t[1].cast<Eigen::Vector3d>(), t[2].cast<std::optional<double>>());
+            return RobotVelocity(t[0].cast<Twist>(), t[1].cast<std::optional<double>>());
           }
       ));
 

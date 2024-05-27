@@ -5,19 +5,15 @@
 #include <franka/control_types.h>
 
 #include "franky/types.hpp"
+#include "franky/twist.hpp"
 
 namespace franky {
 
 class RobotVelocity {
  public:
-  RobotVelocity();
-
   RobotVelocity(const RobotVelocity &robot_velocity);
 
-  RobotVelocity(
-      Eigen::Vector3d end_effector_linear_velocity,
-      Eigen::Vector3d end_effector_angular_velocity,
-      std::optional<double> elbow_velocity = std::nullopt);
+  RobotVelocity(Twist end_effector_twist, std::optional<double> elbow_velocity = std::nullopt);
 
   explicit RobotVelocity(const Vector7d &vector_repr, bool ignore_elbow = false);
 
@@ -35,19 +31,23 @@ class RobotVelocity {
 
   template<typename RotationMatrixType>
   [[nodiscard]] inline RobotVelocity transform(const RotationMatrixType &rotation) const {
-    return {rotation * end_effector_linear_velocity_, rotation * end_effector_angular_velocity_, elbow_velocity_};
+    return {rotation * end_effector_twist_, elbow_velocity_};
+  }
+
+  /// Change the end-effector frame by adding the given offset to the current end-effector frame. Note that the offset
+  /// must be given in world coordinates.
+  /// \param offset_world_frame: The offset to add to the current end-effector frame.
+  /// \return The velocity of the new end-effector frame.
+  [[nodiscard]] inline RobotVelocity changeEndEffectorFrame(const Eigen::Vector3d &offset_world_frame) const {
+    return {end_effector_twist_.propagateThroughLink(offset_world_frame), elbow_velocity_};
   }
 
   [[nodiscard]] inline RobotVelocity with_elbow_velocity(const std::optional<double> elbow_velocity) const {
-    return {end_effector_linear_velocity_, end_effector_angular_velocity_, elbow_velocity};
+    return {end_effector_twist_, elbow_velocity};
   }
 
-  [[nodiscard]] inline Eigen::Vector3d end_effector_linear_velocity() const {
-    return end_effector_linear_velocity_;
-  }
-
-  [[nodiscard]] inline Eigen::Vector3d end_effector_angular_velocity() const {
-    return end_effector_angular_velocity_;
+  [[nodiscard]] inline Twist end_effector_twist() const {
+    return end_effector_twist_;
   }
 
   [[nodiscard]] inline std::optional<double> elbow_velocity() const {
@@ -55,8 +55,7 @@ class RobotVelocity {
   }
 
  private:
-  Eigen::Vector3d end_effector_linear_velocity_;
-  Eigen::Vector3d end_effector_angular_velocity_;
+  Twist end_effector_twist_;
   std::optional<double> elbow_velocity_;
 };
 
