@@ -797,12 +797,12 @@ PYBIND11_MODULE(_franky, m) {
   py::class_<Waypoint<CartesianState>>(m, "CartesianWaypoint")
       .def(py::init<>(
                [](
-                   const RobotPose &robot_pose,
+                   const CartesianState &target,
                    ReferenceType reference_type,
                    RelativeDynamicsFactor relative_dynamics_factor,
                    std::optional<double> minimum_time) {
                  return Waypoint<CartesianState>{
-                     robot_pose, reference_type, relative_dynamics_factor, minimum_time};
+                     target, reference_type, relative_dynamics_factor, minimum_time};
                }
            ),
            "robot_pose"_a,
