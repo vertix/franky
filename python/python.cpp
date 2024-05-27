@@ -559,6 +559,7 @@ PYBIND11_MODULE(_franky, m) {
             return RobotVelocity(t[0].cast<Twist>(), t[1].cast<double>());
           }
       ));
+  py::implicitly_convertible<Twist, RobotVelocity>();
 
   py::class_<CartesianState>(m, "CartesianState")
       .def(py::init<const RobotPose &>(), "pose"_a)
