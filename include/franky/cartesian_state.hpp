@@ -10,39 +10,34 @@ namespace franky {
 
 class CartesianState {
  public:
-  // Allows for implicit conversion from RobotPose to CartesianState
-  CartesianState(RobotPose pose) : pose_(std::move(pose)) {}
+  // Suppress implicit conversion warning
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-conversion"
+  CartesianState(const RobotPose &pose) : pose_(pose) {}
+#pragma clang diagnostic pop
 
-  CartesianState(RobotPose pose, std::optional<RobotVelocity> velocity)
-      : pose_(std::move(pose)), velocity_(std::move(velocity)) {}
-
-  CartesianState(RobotPose pose, RobotVelocity velocity)
-      : CartesianState(std::move(pose), std::optional(velocity)) {}
+  CartesianState(const RobotPose &pose, const RobotVelocity &velocity)
+      : pose_(pose), velocity_(velocity) {}
 
   CartesianState(const CartesianState &) = default;
 
   CartesianState() = default;
 
   [[nodiscard]] inline CartesianState transform(const Affine &transform) const {
-    return CartesianState(
-        transform * pose_, velocity_.has_value() ? std::optional(transform * velocity_.value()) : std::nullopt);
-  }
-
-  [[nodiscard]] inline CartesianState with_velocity(const std::optional<RobotVelocity> velocity) const {
-    return CartesianState(pose_, velocity_);
+    return {transform * pose_, velocity_};
   }
 
   [[nodiscard]] inline RobotPose pose() const {
     return pose_;
   }
 
-  [[nodiscard]] inline std::optional<RobotVelocity> velocity() const {
+  [[nodiscard]] inline RobotVelocity velocity() const {
     return velocity_;
   }
 
  private:
   RobotPose pose_;
-  std::optional<RobotVelocity> velocity_ = std::nullopt;
+  RobotVelocity velocity_;
 };
 
 inline CartesianState operator*(const Affine &transform, const CartesianState &cartesian_state) {

@@ -556,12 +556,10 @@ PYBIND11_MODULE(_franky, m) {
       ));
 
   py::class_<CartesianState>(m, "CartesianState")
-      .def(py::init<RobotPose, std::optional<RobotVelocity>>(),
-           "pose"_a,
-           "velocity"_a = std::nullopt)
+      .def(py::init<const RobotPose &>(), "pose"_a)
+      .def(py::init<const RobotPose &, const RobotVelocity &>(), "pose"_a,"velocity"_a)
       .def(py::init<const CartesianState &>()) // Copy constructor
       .def("transform", &CartesianState::transform, "transform"_a)
-      .def("with_velocity", &CartesianState::with_velocity, "velocity"_a)
       .def_property_readonly("pose", &CartesianState::pose)
       .def_property_readonly("velocity", &CartesianState::velocity)
       .def("__rmul__",
@@ -569,10 +567,8 @@ PYBIND11_MODULE(_franky, m) {
            py::is_operator())
       .def("__repr__", [](const CartesianState &cartesian_state) {
         std::stringstream ss;
-        ss << "(pose=" << robotPoseToStr(cartesian_state.pose());
-        if (cartesian_state.velocity().has_value())
-          ss << ", velocity=" << robotVelocityToStr(cartesian_state.velocity().value());
-        ss << ")";
+        ss << "(pose=" << robotPoseToStr(cartesian_state.pose())
+           << ", velocity=" << robotVelocityToStr(cartesian_state.velocity()) << ")";
         return ss.str();
       })
       .def(py::pickle(
@@ -582,7 +578,7 @@ PYBIND11_MODULE(_franky, m) {
           [](const py::tuple &t) {  // __setstate__
             if (t.size() != 2)
               throw std::runtime_error("Invalid state!");
-            return CartesianState(t[0].cast<RobotPose>(), t[1].cast<std::optional<RobotVelocity>>());
+            return CartesianState(t[0].cast<RobotPose>(), t[1].cast<RobotVelocity>());
           }
       ));
   py::implicitly_convertible<RobotPose, CartesianState>();
@@ -766,14 +762,14 @@ PYBIND11_MODULE(_franky, m) {
            "relative_dynamics_factor"_a = 1.0,
            "return_when_finished"_a = true);
 
-  py::class_<Waypoint<RobotPose>>(m, "CartesianWaypoint")
+  py::class_<Waypoint<CartesianState>>(m, "CartesianWaypoint")
       .def(py::init<>(
                [](
                    const RobotPose &robot_pose,
                    ReferenceType reference_type,
                    RelativeDynamicsFactor relative_dynamics_factor,
                    std::optional<double> minimum_time) {
-                 return Waypoint<RobotPose>{
+                 return Waypoint<CartesianState>{
                      robot_pose, reference_type, relative_dynamics_factor, minimum_time};
                }
            ),
@@ -781,10 +777,10 @@ PYBIND11_MODULE(_franky, m) {
            py::arg_v("reference_type", ReferenceType::Absolute, "_franky.ReferenceType.Absolute"),
            "relative_dynamics_factor"_a = 1.0,
            "minimum_time"_a = std::nullopt)
-      .def_readonly("target", &Waypoint<RobotPose>::target)
-      .def_readonly("reference_type", &Waypoint<RobotPose>::reference_type)
-      .def_readonly("relative_dynamics_factor", &Waypoint<RobotPose>::relative_dynamics_factor)
-      .def_readonly("minimum_time", &Waypoint<RobotPose>::minimum_time);
+      .def_readonly("target", &Waypoint<CartesianState>::target)
+      .def_readonly("reference_type", &Waypoint<CartesianState>::reference_type)
+      .def_readonly("relative_dynamics_factor", &Waypoint<CartesianState>::relative_dynamics_factor)
+      .def_readonly("minimum_time", &Waypoint<CartesianState>::minimum_time);
 
   py::class_<CartesianWaypointMotion, Motion<franka::CartesianPose>, std::shared_ptr<CartesianWaypointMotion>>(
       m, "CartesianWaypointMotion")

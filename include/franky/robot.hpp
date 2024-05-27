@@ -127,7 +127,7 @@ class Robot : public franka::Robot {
   }
 
   [[nodiscard]] inline RobotVelocity currentCartesianVelocity() {
-    return currentCartesianState().velocity().value();
+    return currentCartesianState().velocity();
   }
 
   [[nodiscard]] inline CartesianState currentCartesianState() {
