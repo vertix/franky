@@ -30,11 +30,11 @@ class RobotPose {
 
   [[nodiscard]] franka::CartesianPose as_franka_pose() const;
 
-  [[nodiscard]] inline RobotPose left_transform(const Affine &transform) const {
+  [[nodiscard]] inline RobotPose leftTransform(const Affine &transform) const {
     return {transform * end_effector_pose_, elbow_position_};
   }
 
-  [[nodiscard]] inline RobotPose right_transform(const Affine &transform) const {
+  [[nodiscard]] inline RobotPose rightTransform(const Affine &transform) const {
     return {end_effector_pose_ * transform, elbow_position_};
   }
 
@@ -42,7 +42,7 @@ class RobotPose {
     return {end_effector_pose_ * transform, elbow_position_};
   }
 
-  [[nodiscard]] inline RobotPose with_elbow_position(const std::optional<double> elbow_position) const {
+  [[nodiscard]] inline RobotPose withElbowPosition(const std::optional<double> elbow_position) const {
     return {end_effector_pose_, elbow_position};
   }
 
@@ -60,11 +60,11 @@ class RobotPose {
 };
 
 inline RobotPose operator*(const RobotPose &robot_pose, const Affine &right_transform) {
-  return robot_pose.right_transform(right_transform);
+  return robot_pose.rightTransform(right_transform);
 }
 
 inline RobotPose operator*(const Affine &left_transform, const RobotPose &robot_pose) {
-  return robot_pose.left_transform(left_transform);
+  return robot_pose.leftTransform(left_transform);
 }
 
 }  // namespace franky

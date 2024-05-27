@@ -15,7 +15,7 @@ AggregatedPath<7> mk_path_from_waypoints(
   std::vector<std::shared_ptr<LinearPath<7>>> line_segments;
   RobotPose prev_robot_pose = waypoints[0].robot_pose;
   if (!prev_robot_pose.elbow_position().has_value())
-    prev_robot_pose = prev_robot_pose.with_elbow_position(default_initial_elbow_pos);
+    prev_robot_pose = prev_robot_pose.withElbowPosition(default_initial_elbow_pos);
 
   for (size_t i = 1; i < waypoints.size(); i += 1) {
     auto segment = std::make_shared<LinearPath<7>>(
