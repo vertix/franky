@@ -584,6 +584,31 @@ PYBIND11_MODULE(_franky, m) {
       ));
   py::implicitly_convertible<RobotPose, CartesianState>();
 
+  py::class_<JointState>(m, "JointState")
+      .def(py::init<const Vector7d &>(), "position"_a)
+      .def(py::init<const Vector7d &, const Vector7d &>(), "position"_a,"velocity"_a)
+      .def(py::init<const JointState &>()) // Copy constructor
+      .def_property_readonly("position", &JointState::position)
+      .def_property_readonly("velocity", &JointState::velocity)
+      .def("__repr__", [](const JointState &joint_state) {
+        std::stringstream ss;
+        ss << "(pose=" << vecToStr(joint_state.position())
+           << ", velocity=" << vecToStr(joint_state.velocity()) << ")";
+        return ss.str();
+      })
+      .def(py::pickle(
+          [](const JointState &joint_state) {  // __getstate__
+            return py::make_tuple(joint_state.position(), joint_state.velocity());
+          },
+          [](const py::tuple &t) {  // __setstate__
+            if (t.size() != 2)
+              throw std::runtime_error("Invalid state!");
+            return JointState(t[0].cast<Vector7d>(), t[1].cast<Vector7d>());
+          }
+      ));
+  py::implicitly_convertible<Vector7d, JointState>();
+
+
   py::class_<Kinematics::NullSpaceHandling>(m, "NullSpaceHandling")
       .def(py::init<size_t, double>(), "joint_index"_a, "value"_a)
       .def_readwrite("joint_index", &Kinematics::NullSpaceHandling::joint_index)
@@ -745,7 +770,7 @@ PYBIND11_MODULE(_franky, m) {
   py::class_<JointWaypointMotion, Motion<franka::JointPositions>, std::shared_ptr<JointWaypointMotion>>(
       m, "JointWaypointMotion")
       .def(py::init<>([](
-               const std::vector<Waypoint<Vector7d>> &waypoints,
+               const std::vector<Waypoint<JointState>> &waypoints,
                RelativeDynamicsFactor relative_dynamics_factor,
                bool return_when_finished) {
              return std::make_shared<JointWaypointMotion>(
@@ -757,7 +782,7 @@ PYBIND11_MODULE(_franky, m) {
            "return_when_finished"_a = true);
 
   py::class_<JointMotion, JointWaypointMotion, std::shared_ptr<JointMotion>>(m, "JointMotion")
-      .def(py::init<const Vector7d &, ReferenceType, double, bool>(),
+      .def(py::init<const JointState &, ReferenceType, double, bool>(),
            "target"_a,
            py::arg_v("reference_type", ReferenceType::Absolute, "_franky.ReferenceType.Absolute"),
            "relative_dynamics_factor"_a = 1.0,

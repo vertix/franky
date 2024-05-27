@@ -13,8 +13,8 @@ template<>
 class StopMotion<franka::JointPositions> : public JointWaypointMotion {
  public:
   explicit StopMotion() : JointWaypointMotion(
-      {{
-           .target=Vector7d::Zero(),
+      {Waypoint<JointState>{
+           .target=JointState(Vector7d::Zero()),
            .reference_type= ReferenceType::Relative,
            .relative_dynamics_factor = RelativeDynamicsFactor::MAX_DYNAMICS()
        }}) {}

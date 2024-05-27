@@ -26,6 +26,7 @@
 #include "franky/cartesian_state.hpp"
 #include "franky/control_signal_type.hpp"
 #include "franky/gripper.hpp"
+#include "franky/joint_state.hpp"
 #include "franky/kinematics.hpp"
 #include "franky/robot.hpp"
 #include "franky/robot_pose.hpp"

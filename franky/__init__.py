@@ -39,6 +39,7 @@ from ._franky import (
     RobotPose,
     RobotVelocity,
     CartesianState,
+    JointState,
     CartesianWaypoint,
     Affine,
     NullSpaceHandling,

@@ -5,7 +5,7 @@
 namespace franky {
 
 JointMotion::JointMotion(
-    const Vector7d &target,
+    const JointState &target,
     ReferenceType reference_type,
     RelativeDynamicsFactor relative_dynamics_factor,
     bool return_when_finished)

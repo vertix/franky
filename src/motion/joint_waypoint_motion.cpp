@@ -2,17 +2,15 @@
 
 #include <ruckig/ruckig.hpp>
 
-#include "franky/robot_pose.hpp"
-#include "franky/robot.hpp"
-#include "franky/util.hpp"
+#include "franky/motion/reference_type.hpp"
 
 namespace franky {
 
-JointWaypointMotion::JointWaypointMotion(const std::vector<Waypoint<Vector7d>> &waypoints)
+JointWaypointMotion::JointWaypointMotion(const std::vector<Waypoint<JointState>> &waypoints)
     : JointWaypointMotion(waypoints, Params()) {}
 
-JointWaypointMotion::JointWaypointMotion(const std::vector<Waypoint<Vector7d>> &waypoints, Params params)
-    : WaypointMotion<franka::JointPositions, Vector7d>(waypoints, params) {}
+JointWaypointMotion::JointWaypointMotion(const std::vector<Waypoint<JointState>> &waypoints, Params params)
+    : WaypointMotion<franka::JointPositions, JointState>(waypoints, params) {}
 
 void JointWaypointMotion::initWaypointMotion(
     const franka::RobotState &robot_state,
@@ -34,13 +32,13 @@ franka::JointPositions JointWaypointMotion::getControlSignal(
 void JointWaypointMotion::setNewWaypoint(
     const franka::RobotState &robot_state,
     const std::optional<franka::JointPositions> &previous_command,
-    const Waypoint<Vector7d> &new_waypoint,
+    const Waypoint<JointState> &new_waypoint,
     ruckig::InputParameter<7> &input_parameter) {
   auto new_target = new_waypoint.target;
   if (new_waypoint.reference_type == ReferenceType::Relative)
-    new_target += toEigen(input_parameter.current_position);
-  input_parameter.target_position = toStd<7>(new_target);
-  input_parameter.target_velocity = toStd<7>(Vector7d::Zero());
+    new_target.position() += toEigen(input_parameter.current_position);
+  input_parameter.target_position = toStd<7>(new_target.position());
+  input_parameter.target_velocity = toStd<7>(new_target.velocity());
   input_parameter.target_acceleration = toStd<7>(Vector7d::Zero());
 }
 

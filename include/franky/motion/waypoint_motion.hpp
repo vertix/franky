@@ -7,6 +7,7 @@
 #include "franky/util.hpp"
 #include "franky/motion/motion.hpp"
 #include "franky/relative_dynamics_factor.hpp"
+#include "franky/motion/reference_type.hpp"
 
 namespace franky {
 
