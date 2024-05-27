@@ -6,46 +6,89 @@
 
 namespace franky {
 
+/**
+ * @brief Class to represent the twist of a robot.
+ */
 class Twist {
  public:
+  /**
+   * @brief Default constructor. Initializes linear and angular velocities to zero.
+   */
   Twist() : linear_velocity_(Eigen::Vector3d::Zero()), angular_velocity_(Eigen::Vector3d::Zero()) {}
 
   Twist(const Twist &twist) = default;
 
+  /**
+   * @param linear_velocity The linear velocity.
+   * @param angular_velocity The angular velocity.
+   */
   Twist(Eigen::Vector3d linear_velocity, Eigen::Vector3d angular_velocity)
       : linear_velocity_(std::move(linear_velocity)), angular_velocity_(std::move(angular_velocity)) {}
 
+  /**
+   * @param vector_repr The vector representation of the twist.
+   */
   explicit Twist(const Vector6d &vector_repr)
       : linear_velocity_(vector_repr.head<3>()), angular_velocity_(vector_repr.tail<3>()) {}
 
+  /**
+   * @brief Get the vector representation of the twist. It consists of the linear and angular velocities.
+   *
+   * @return The vector representation of the twist.
+   */
   [[nodiscard]] inline Vector6d vector_repr() const {
     Vector6d result;
     result << linear_velocity_, angular_velocity_;
     return result;
   }
 
-  [[nodiscard]] inline Twist transformWith(const Affine &affine) const {
-    return transformWith(affine.rotation());
+  /**
+   * @brief Transform the frame of the twist by applying the given affine transform.
+   *
+   * @param transformation The transformation to apply.
+   * @return The twist after the transformation.
+   */
+  [[nodiscard]] inline Twist transformWith(const Affine &transformation) const {
+    return transformWith(transformation.rotation());
   }
 
+  /**
+   * @brief Transform the frame of the twist by applying the given rotation.
+   *
+   * @param rotation The rotation to apply.
+   * @return The twist after the transformation.
+   */
   template<typename RotationMatrixType>
   [[nodiscard]] inline Twist transformWith(const RotationMatrixType &rotation) const {
     return {rotation * linear_velocity_, rotation * angular_velocity_};
   }
 
-  /// Propagate the twist through a link with the given translation. Hence, suppose this twist is the twist of a frame
-  /// A, then this function computes the twist of a frame B that is rigidly attached to frame A by a link with the
-  /// given translation: B = A + T, where T is the translation.
-  /// \param link_translation: The translation of the link. Must be in the same reference frame as this twist.
-  /// \return The twist propagated through the link.
+  /**
+   * @brief Propagate the twist through a link with the given translation. Hence, suppose this twist is the twist of a
+   * frame A, then this function computes the twist of a frame B that is rigidly attached to frame A by a link with the
+   * given translation: B = A + T, where T is the translation.
+   *
+   * @param link_translation: The translation of the link. Must be in the same reference frame as this twist.
+   * @return The twist propagated through the link.
+   */
   [[nodiscard]] inline Twist propagateThroughLink(const Eigen::Vector3d &link_translation) const {
     return {linear_velocity_ + angular_velocity_.cross(link_translation), angular_velocity_};
   }
 
+  /**
+   * @brief Get the linear velocity.
+   *
+   * @return The linear velocity.
+   */
   [[nodiscard]] inline Eigen::Vector3d linear_velocity() const {
     return linear_velocity_;
   }
 
+  /**
+   * @brief Get the angular velocity.
+   *
+   * @return The angular velocity.
+   */
   [[nodiscard]] inline Eigen::Vector3d angular_velocity() const {
     return angular_velocity_;
   }
