@@ -21,7 +21,8 @@ RUN mkdir -p /build
 VOLUME /code
 VOLUME /build
 WORKDIR /build
-ADD docker/common/manylinux-build-wheels /usr/bin/build-wheels
+ADD docker/common/manylinux-build-wheels /usr/bin/manylinux-build-wheels
+ADD docker/build/build-wheels /usr/bin/
 ADD docker/build/run-tests /usr/bin/
 
 # Cleaning up

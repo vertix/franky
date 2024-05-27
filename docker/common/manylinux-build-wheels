@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+CODE_DIR="${1:-$(pwd)}"
+
 # Log python versions
 echo "Found the following Python versions:"
 for PYBIN in /opt/python/*/bin; do
@@ -10,14 +12,16 @@ for PYBIN in /opt/python/*/bin; do
 done
 
 # Build python wheels
-mkdir -p wheels
+WHEELS_DIR="$(pwd)/wheels"
+mkdir -p "${WHEELS_DIR}"
 mkdir -p dist
 mkdir -p dist_full
 
 # Compile wheels
 for PYBIN in /opt/python/*/bin; do
+  PYBIN_NAME="$(basename "$(dirname "$PYBIN")")"
   if [[ "${PYBIN}" =~ ${PYBIN_SUPPORTED_VERSIONS} ]]; then
-    "${PYBIN}/pip" wheel /code -w wheels/
+    (mkdir -p "$PYBIN_NAME" && cd "$PYBIN_NAME" && "${PYBIN}/pip" wheel "$CODE_DIR" -w "${WHEELS_DIR}")
   fi
 done
 
@@ -42,5 +46,4 @@ echo "Built the following wheels:"
 ls dist
 
 mkdir -p output
-libfranka_version=${{ inputs.libfranka-version }}
-zip -r "output/libfranka_${libfranka_version//./-}_wheels.zip" dist/
+zip -r "output/libfranka_${LIBFRANKA_VERSION//./-}_wheels.zip" dist/

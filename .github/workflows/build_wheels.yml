@@ -29,15 +29,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          set -a 
-          . ./dependency_versions
-          set +a
           ./docker/common/install-dependencies
 
       - name: Python package
         run: |
           yum -y install zip
-          ./docker/common/manylinux-build-wheels
+          LIBFRANKA_VERSION=${{ inputs.libfranka-version }} ./docker/common/manylinux-build-wheels
 
       - name: Upload wheels
         uses: actions/upload-artifact@v3
