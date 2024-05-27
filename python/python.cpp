@@ -47,21 +47,21 @@ std::string vecToStr(const Eigen::Vector<double, dims> &vec) {
 
 std::string affineToStr(const Affine &affine) {
   std::stringstream ss;
-  ss << "(t=" << vecToStr(affine.translation().eval())
+  ss << "Affine(t=" << vecToStr(affine.translation().eval())
      << ", q=" << vecToStr(Eigen::Quaterniond(affine.rotation()).coeffs()) << ")";
   return ss.str();
 }
 
 std::string twistToStr(const Twist &twist) {
   std::stringstream ss;
-  ss << "(lin=" << vecToStr(twist.linear_velocity())
+  ss << "Twist(lin=" << vecToStr(twist.linear_velocity())
      << ", ang=" << vecToStr(twist.angular_velocity()) << ")";
   return ss.str();
 }
 
 std::string robotPoseToStr(const RobotPose &robot_pose) {
   std::stringstream ss;
-  ss << "(ee_pose=" << affineToStr(robot_pose.end_effector_pose());
+  ss << "RobotPose(ee_pose=" << affineToStr(robot_pose.end_effector_pose());
   if (robot_pose.elbow_position().has_value())
     ss << ", elbow=" << robot_pose.elbow_position().value();
   ss << ")";
@@ -70,7 +70,7 @@ std::string robotPoseToStr(const RobotPose &robot_pose) {
 
 std::string robotVelocityToStr(const RobotVelocity &robot_velocity) {
   std::stringstream ss;
-  ss << "(ee_twist=" << twistToStr(robot_velocity.end_effector_twist());
+  ss << "RobotVelocity(ee_twist=" << twistToStr(robot_velocity.end_effector_twist());
   if (robot_velocity.elbow_velocity().has_value())
     ss << ", elbow_vel=" << robot_velocity.elbow_velocity().value();
   ss << ")";
@@ -568,7 +568,7 @@ PYBIND11_MODULE(_franky, m) {
            py::is_operator())
       .def("__repr__", [](const CartesianState &cartesian_state) {
         std::stringstream ss;
-        ss << "(pose=" << robotPoseToStr(cartesian_state.pose())
+        ss << "CartesianState(pose=" << robotPoseToStr(cartesian_state.pose())
            << ", velocity=" << robotVelocityToStr(cartesian_state.velocity()) << ")";
         return ss.str();
       })
@@ -592,7 +592,7 @@ PYBIND11_MODULE(_franky, m) {
       .def_property_readonly("velocity", &JointState::velocity)
       .def("__repr__", [](const JointState &joint_state) {
         std::stringstream ss;
-        ss << "(position=" << vecToStr(joint_state.position())
+        ss << "JointState(position=" << vecToStr(joint_state.position())
            << ", velocity=" << vecToStr(joint_state.velocity()) << ")";
         return ss.str();
       })
