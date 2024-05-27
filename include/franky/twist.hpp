@@ -11,25 +11,22 @@ namespace franky {
  */
 class Twist {
  public:
-  /**
-   * @brief Default constructor. Initializes linear and angular velocities to zero.
-   */
-  Twist() : linear_velocity_(Eigen::Vector3d::Zero()), angular_velocity_(Eigen::Vector3d::Zero()) {}
-
   Twist(const Twist &twist) = default;
 
   /**
    * @param linear_velocity The linear velocity.
    * @param angular_velocity The angular velocity.
    */
-  Twist(Eigen::Vector3d linear_velocity, Eigen::Vector3d angular_velocity)
+  explicit Twist(Eigen::Vector3d linear_velocity = Eigen::Vector3d::Zero(),
+                 Eigen::Vector3d angular_velocity = Eigen::Vector3d::Zero())
       : linear_velocity_(std::move(linear_velocity)), angular_velocity_(std::move(angular_velocity)) {}
 
   /**
    * @param vector_repr The vector representation of the twist.
    */
-  explicit Twist(const Vector6d &vector_repr)
-      : linear_velocity_(vector_repr.head<3>()), angular_velocity_(vector_repr.tail<3>()) {}
+  [[nodiscard]] static inline Twist fromVectorRepr(const Vector6d &vector_repr) {
+    return Twist{vector_repr.head<3>(), vector_repr.tail<3>()};
+  }
 
   /**
    * @brief Get the vector representation of the twist. It consists of the linear and angular velocities.
@@ -60,7 +57,7 @@ class Twist {
    */
   template<typename RotationMatrixType>
   [[nodiscard]] inline Twist transformWith(const RotationMatrixType &rotation) const {
-    return {rotation * linear_velocity_, rotation * angular_velocity_};
+    return Twist{rotation * linear_velocity_, rotation * angular_velocity_};
   }
 
   /**
@@ -72,7 +69,7 @@ class Twist {
    * @return The twist propagated through the link.
    */
   [[nodiscard]] inline Twist propagateThroughLink(const Eigen::Vector3d &link_translation) const {
-    return {linear_velocity_ + angular_velocity_.cross(link_translation), angular_velocity_};
+    return Twist{linear_velocity_ + angular_velocity_.cross(link_translation), angular_velocity_};
   }
 
   /**

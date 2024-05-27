@@ -475,7 +475,12 @@ PYBIND11_MODULE(_franky, m) {
       ));
 
   py::class_<Twist>(m, "Twist")
-      .def(py::init<Eigen::Vector3d, Eigen::Vector3d>(), "linear_velocity"_a, "angular_velocity"_a)
+      .def(py::init([](
+          const std::optional<Eigen::Vector3d> &linear_velocity,
+          const std::optional<Eigen::Vector3d> &angular_velocity) {
+        return Twist(
+            linear_velocity.value_or(Eigen::Vector3d::Zero()), angular_velocity.value_or(Eigen::Vector3d::Zero()));
+      }), "linear_velocity"_a = std::nullopt, "angular_velocity"_a = std::nullopt)
       .def(py::init<const Twist &>()) // Copy constructor
       .def("propagate_through_link", &Twist::propagateThroughLink, "link_translation"_a)
       .def("transform_with",

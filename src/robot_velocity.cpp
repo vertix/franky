@@ -13,16 +13,16 @@ RobotVelocity::RobotVelocity() = default;
 
 RobotVelocity::RobotVelocity(const RobotVelocity &) = default;
 
-RobotVelocity::RobotVelocity(Twist end_effector_twist, double elbow_velocity)
-    : end_effector_twist_(std::move(end_effector_twist)),
+RobotVelocity::RobotVelocity(const Twist &end_effector_twist, double elbow_velocity)
+    : end_effector_twist_(end_effector_twist),
       elbow_velocity_(elbow_velocity) {}
 
 RobotVelocity::RobotVelocity(const Vector7d &vector_repr)
-    : RobotVelocity(Twist{vector_repr.head<6>()}, vector_repr[6]) {}
+    : RobotVelocity(Twist::fromVectorRepr(vector_repr.head<6>()), vector_repr[6]) {}
 
 RobotVelocity::RobotVelocity(const franka::CartesianVelocities franka_velocity)
     : RobotVelocity(
-    {
+    Twist{
         Vector6d::Map(franka_velocity.O_dP_EE.data()).tail<3>(),
         Vector6d::Map(franka_velocity.O_dP_EE.data()).head<3>()
     }, franka_velocity.elbow[0]) {}

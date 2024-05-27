@@ -28,7 +28,7 @@ class RobotVelocity {
    * @param end_effector_twist The twist of the end effector.
    * @param elbow_velocity The velocity of the elbow. Default is 0.0.
    */
-  RobotVelocity(Twist end_effector_twist, double elbow_velocity = 0.0);
+  RobotVelocity(const Twist &end_effector_twist, double elbow_velocity = 0.0);
 #pragma clang diagnostic pop
 
   /**
