@@ -46,7 +46,7 @@ class CartesianState {
 };
 
 inline CartesianState operator*(const Affine &transform, const CartesianState &cartesian_state) {
-  return cartesian_state.transform(transform);
+  return cartesian_state.transformWith(transform);
 }
 
 }  // namespace franky
