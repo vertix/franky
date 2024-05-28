@@ -24,8 +24,17 @@ bool Robot::recoverFromErrors() {
   return !hasErrors();
 }
 
+JointState Robot::currentJointState() {
+  auto s = state();
+  return {Eigen::Map<const Vector7d>(state().q.data()), Eigen::Map<const Vector7d>(state().dq.data())};
+}
+
 Vector7d Robot::currentJointPositions() {
-  return Eigen::Map<const Vector7d>(state().q.data());
+  return currentJointState().position();
+}
+
+Vector7d Robot::currentJointVelocities() {
+  return currentJointState().velocity();
 }
 
 Affine Robot::forwardKinematics(const Vector7d &q) {

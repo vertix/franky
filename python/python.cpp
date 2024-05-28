@@ -985,6 +985,8 @@ PYBIND11_MODULE(_franky, m) {
       .def_property_readonly("current_pose", &Robot::currentPose)
       .def_property_readonly("current_cartesian_velocity", &Robot::currentCartesianVelocity)
       .def_property_readonly("current_cartesian_state", &Robot::currentCartesianState)
+      .def_property_readonly("current_joint_state", &Robot::currentJointState)
+      .def_property_readonly("current_joint_velocities", &Robot::currentJointVelocities)
       .def_property_readonly("current_joint_positions", &Robot::currentJointPositions)
       .def_property_readonly("state", &Robot::state)
       .def_property_readonly("is_in_control", &Robot::is_in_control)

@@ -22,7 +22,8 @@
 #include "franky/scope_guard.hpp"
 #include "franky/control_signal_type.hpp"
 #include "franky/util.hpp"
-#include "relative_dynamics_factor.hpp"
+#include "franky/relative_dynamics_factor.hpp"
+#include "franky/joint_state.hpp"
 
 namespace franky {
 
@@ -136,7 +137,11 @@ class Robot : public franka::Robot {
             RobotVelocity(franka::CartesianVelocities(s.O_dP_EE_c, s.delbow_c))};
   }
 
+  [[nodiscard]] JointState currentJointState();
+
   [[nodiscard]] Vector7d currentJointPositions();
+
+  [[nodiscard]] Vector7d currentJointVelocities();
 
   [[nodiscard]] franka::RobotState state();
 
