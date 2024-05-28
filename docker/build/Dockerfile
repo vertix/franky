@@ -9,8 +9,6 @@ ARG LIBFRANKA_VERSION
 RUN /tmp/common/install-dependencies
 
 ARG PYBIN_SUPPORTED_VERSIONS="cp3(7m|8|9|10|11|12)"
-# Preserve argument for runtime
-ENV PYBIN_SUPPORTED_VERSIONS=${PYBIN_SUPPORTED_VERSIONS}
 RUN /tmp/common/manylinux-setup-pip
 
 # Set working directory
@@ -19,9 +17,14 @@ RUN mkdir -p /build
 VOLUME /code
 VOLUME /build
 WORKDIR /build
-ADD docker/common/manylinux-build-wheels /usr/bin/manylinux-build-wheels
+ADD docker/common/manylinux-build-wheels /usr/bin/
+ADD docker/common/dependency_versions /usr/bin/
 ADD docker/build/build-wheels /usr/bin/
 ADD docker/build/run-tests /usr/bin/
 
 # Cleaning up
 RUN rm -rf /tmp/common
+
+# Preserve arguments for runtime
+ENV PYBIN_SUPPORTED_VERSIONS=${PYBIN_SUPPORTED_VERSIONS}
+ENV LIBFRANKA_VERSION=${LIBFRANKA_VERSION}

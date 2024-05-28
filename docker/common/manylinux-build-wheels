@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. "${SCRIPT_DIR}/dependency_versions"
+
 CODE_DIR="${1:-$(pwd)}"
 
 # Log python versions
@@ -46,4 +49,5 @@ echo "Built the following wheels:"
 ls dist
 
 mkdir -p output
+LIBFRANKA_VERSION="${LIBFRANKA_VERSION:-${LIBFRANKA_DEFAULT_VERSION}}"
 zip -r "output/libfranka_${LIBFRANKA_VERSION//./-}_wheels.zip" dist/
