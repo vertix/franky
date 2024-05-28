@@ -29,7 +29,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          ./docker/common/install-dependencies
+          LIBFRANKA_VERSION=${{ inputs.libfranka-version }} ./docker/common/install-dependencies
 
       - name: Python package
         run: |
