@@ -159,9 +159,9 @@ The container requires access to the host machines network *and* elevated user r
 For building franky and its wheels, we provide another Docker container that can also be launched using docker-compose:
 
 ```bash
-docker compose build
-docker compose run franky-build run-tests  # To run the tests
-docker compose run franky-build build-wheels  # To build wheels for all supported python versions
+docker compose build franky-build
+docker compose run --rm franky-build run-tests  # To run the tests
+docker compose run --rm franky-build build-wheels  # To build wheels for all supported python versions
 ```
 
 ```bash
