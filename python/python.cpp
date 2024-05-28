@@ -589,6 +589,7 @@ PYBIND11_MODULE(_franky, m) {
           }
       ));
   py::implicitly_convertible<RobotPose, CartesianState>();
+  py::implicitly_convertible<Affine, CartesianState>();
 
   py::class_<JointState>(m, "JointState")
       .def(py::init<const Vector7d &>(), "position"_a)
@@ -613,6 +614,7 @@ PYBIND11_MODULE(_franky, m) {
           }
       ));
   py::implicitly_convertible<Vector7d, JointState>();
+  py::implicitly_convertible<std::array<double, 7>, JointState>();
 
 
   py::class_<Kinematics::NullSpaceHandling>(m, "NullSpaceHandling")
