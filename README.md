@@ -316,7 +316,7 @@ m7 = CartesianMotion(Affine([0.2, 0.0, 0.0]), ReferenceType.Relative)
 m8 = CartesianWaypointMotion([
     CartesianWaypoint(RobotPose(Affine([0.2, -0.4, 0.3], quat), elbow_position=1.7)),
     # The following waypoint is relative to the prior one and 50% slower
-    CartesianWaypoint(Affine([0.2, 0.0, 0.0]), ReferenceType.Relative, velocity_rel=0.5)
+    CartesianWaypoint(Affine([0.2, 0.0, 0.0]), ReferenceType.Relative, RelativeDynamicsFactor(0.5, 1.0, 1.0))
 ])
 
 # Cartesian waypoints also permit to specify target velocities
@@ -335,7 +335,7 @@ m9 = CartesianWaypointMotion([
 m10 = CartesianPoseStopMotion()
 ```
 
-Every motion and waypoint type allows to adapt the dynamics (velocity, acceleration and jerk) by setting the respective `velocity_rel`, `acceleration_rel`, and `jerk_rel` parameters.
+Every motion and waypoint type allows to adapt the dynamics (velocity, acceleration and jerk) by setting the respective `relative_dynamics_factor` parameter.
 
 The real robot can be moved by applying a motion to the robot using `move`:
 ```python
