@@ -805,7 +805,7 @@ PYBIND11_MODULE(_franky, m) {
                      target, reference_type, relative_dynamics_factor, minimum_time};
                }
            ),
-           "robot_pose"_a,
+           "target"_a,
            py::arg_v("reference_type", ReferenceType::Absolute, "_franky.ReferenceType.Absolute"),
            "relative_dynamics_factor"_a = 1.0,
            "minimum_time"_a = std::nullopt)
