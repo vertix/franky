@@ -24,7 +24,7 @@ jobs:
 
       - name: Install other dependencies
         run: |
-          ./docker/common/install-dependencies
+          LIBFRANKA_VERSION=${{ inputs.libfranka-version }} ./docker/common/install-dependencies
 
       - name: Configure & make
         run: |
