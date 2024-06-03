@@ -250,19 +250,31 @@ current_pose = robot.current_pose
 
 The robot state can be retrieved by calling the following methods:
 
-* `state`: Return an object of the `franky.RobotState` class which contains most of the same attributes, under the same name, as the libfranka [franka::RobotState](https://frankaemika.github.io/libfranka/structfranka_1_1RobotState.html) definition.
+* `state`: Object of type `franky.RobotState`, which is a wrapper of the libfranka [franka::RobotState](https://frankaemika.github.io/libfranka/structfranka_1_1RobotState.html) structure.
 
-* `current_pose`: Return a 3D Affine transformation object of the measured end effector pose in base frame (alias for [franka::RobotState::O_T_EE](https://frankaemika.github.io/libfranka/structfranka_1_1RobotState.html#a193781d47722b32925e0ea7ac415f442)).
+* `current_cartesian_state`: Object of type `franky.CartesianState`, which contains the end-effector pose and velocity obtained from [franka::RobotState::O_T_EE](https://frankaemika.github.io/libfranka/structfranka_1_1RobotState.html#a193781d47722b32925e0ea7ac415f442) and [franka::RobotState::O_dP_EE_c](https://frankaemika.github.io/libfranka/structfranka_1_1RobotState.html#a4be112bd1a9a7d777a67aea4a18a8dcc).
 
-* `current_joint_positions`: Return a sequence of the manipulator arm's 7-joint positions (alias for [franka::RobotState::q](https://frankaemika.github.io/libfranka/structfranka_1_1RobotState.html#ade3335d1ac2f6c44741a916d565f7091)).
+* `current_joint_position`: Object of type `franky.JointState`, which contains the joint positions and velocities obtained from [franka::RobotState::q](https://frankaemika.github.io/libfranka/structfranka_1_1RobotState.html#ade3335d1ac2f6c44741a916d565f7091) and [franka::RobotState::dq](https://frankaemika.github.io/libfranka/structfranka_1_1RobotState.html#a706045af1b176049e9e56df755325bd2).
 
-```.py
+```python
 robot = Robot("172.16.0.2")
 
-# Get the current state
+# Get the current state as raw `franky.RobotState`
 state = robot.state
-pose = robot.current_pose
-joint_positions = robot.current_joint_positions
+
+# Get the robot's cartesian state
+cartesian_state = robot.current_cartesian_state
+robot_pose = cartesian_state.pose  # Contains end-effector pose and elbow position
+ee_pose = robot_pose.end_effector_pose
+elbow_pos = robot_pose.elbow_position
+robot_velocity = cartesian_state.velocity  # Contains end-effector twist and elbow velocity
+ee_twist = robot_velocity.end_effector_twist
+elbow_vel = robot_velocity.elbow_velocity
+
+# Get the robot's joint state
+joint_state = robot.current_joint_state
+joint_pos = joint_state.position
+joint_vel = joint_state.velocity
 ```
 
 
