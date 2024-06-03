@@ -27,27 +27,54 @@
 
 namespace franky {
 
+/**
+ * @brief Exception thrown when an invalid motion type is used.
+ *
+ * This exception is thrown when a motion is asynchronously executed and a new motion of a different type is set before
+ * the previous one finished.
+ */
 struct InvalidMotionTypeException : public std::runtime_error {
   using std::runtime_error::runtime_error;
 };
 
+/**
+ * @brief A class representing a Franka robot.
+ *
+ * This class extends the franka::Robot class and adds additional functionality to it.
+ */
 class Robot : public franka::Robot {
  public:
   template<size_t dims>
   using ScalarOrArray = std::variant<double, std::array<double, dims>, Eigen::Vector<double, dims>>;
 
+  /**
+   * @brief Global parameters for the robot.
+   */
   struct Params {
+    /**
+     * @brief The relative dynamics factor for the robot. The maximum velocity, acceleration and jerk of the robot are
+     * scaled by the factors specified here.
+     */
     RelativeDynamicsFactor relative_dynamics_factor{1.0};
 
-    double default_torque_threshold{20.0}, default_force_threshold{30.0};
+    /**
+     * @brief The default torque threshold for collision behavior.
+     */
+    double default_torque_threshold{20.0};
 
-    // kCartesianImpedance wobbles -> setK?
+    /**
+     * @brief The default force threshold for collision behavior.
+     */
+    double default_force_threshold{30.0};
+
     franka::ControllerMode controller_mode{franka::ControllerMode::kJointImpedance};
 
     franka::RealtimeConfig realtime_config{franka::RealtimeConfig::kEnforce};
   };
 
-  // Modified DH-parameters: alpha, d, a
+  /**
+   * @brief The kinematic chain of the robot.
+   */
   const KinematicChain<7> kinematics = KinematicChain<7>(
       {{
            {0.0, 0.333, 0.0},
@@ -63,52 +90,114 @@ class Robot : public franka::Robot {
           Eigen::Matrix<double, 3, 1>::Ones())
   );
 
-  // Cartesian constraints
-  static constexpr double max_translation_velocity{1.7}; // [m/s]
-  static constexpr double max_rotation_velocity{2.5}; // [rad/s]
-  static constexpr double max_elbow_velocity{2.175}; // [rad/s]
-  static constexpr double max_translation_acceleration{13.0}; // [m/s²]
-  static constexpr double max_rotation_acceleration{25.0}; // [rad/s²]
-  static constexpr double max_elbow_acceleration{10.0}; // [rad/s²]
-  static constexpr double max_translation_jerk{6500.0}; // [m/s³]
-  static constexpr double max_rotation_jerk{12500.0}; // [rad/s³]
-  static constexpr double max_elbow_jerk{5000.0}; // [rad/s³]
+  // Maximum translational velocity [m/s]
+  static constexpr double max_translation_velocity{1.7};
 
-  // Joint constraints
-  static constexpr std::array<double, 7>
-  max_joint_velocity{
-    { 2.175, 2.175, 2.175, 2.175, 2.610, 2.610, 2.610 }
-  }; // [rad/s]
-  static constexpr std::array<double, 7>
-  max_joint_acceleration{
-    { 15.0, 7.5, 10.0, 12.5, 15.0, 20.0, 20.0 }
-  }; // [rad/s²]
-  static constexpr std::array<double, 7>
-  max_joint_jerk{
-    { 7500.0, 3750.0, 5000.0, 6250.0, 7500.0, 10000.0, 10000.0 }
-  }; // [rad/s^3]
+  // Maximum rotational velocity [rad/s]
+  static constexpr double max_rotation_velocity{2.5};
 
-  static constexpr size_t
-  degrees_of_freedoms{ 7 };
-  static constexpr double control_rate{0.001}; // [s]
+  // Maximum elbow velocity [rad/s]
+  static constexpr double max_elbow_velocity{2.175};
 
-  //! Connects to a robot at the given FCI IP address.
+  // Maximum translational acceleration [m/s²]
+  static constexpr double max_translation_acceleration{13.0};
+
+  // Maximum rotational acceleration [rad/s²]
+  static constexpr double max_rotation_acceleration{25.0};
+
+  // Maximum elbow acceleration [rad/s²]
+  static constexpr double max_elbow_acceleration{10.0};
+
+  // Maximum translational jerk [m/s³]
+  static constexpr double max_translation_jerk{6500.0};
+
+  // Maximum rotational jerk [rad/s³]
+  static constexpr double max_rotation_jerk{12500.0};
+
+  // Maximum elbow jerk [rad/s³]
+  static constexpr double max_elbow_jerk{5000.0};
+
+  // Maximum joint velocity [rad/s]
+  static constexpr std::array<double, 7>
+      max_joint_velocity{
+      {2.175, 2.175, 2.175, 2.175, 2.610, 2.610, 2.610}
+  };
+
+  // Maximum joint acceleration [rad/s²]
+  static constexpr std::array<double, 7>
+      max_joint_acceleration{
+      {15.0, 7.5, 10.0, 12.5, 15.0, 20.0, 20.0}
+  };
+
+  // Maximum joint jerk [rad/s³]
+  static constexpr std::array<double, 7>
+      max_joint_jerk{
+      {7500.0, 3750.0, 5000.0, 6250.0, 7500.0, 10000.0, 10000.0}
+  };
+
+  // Number of degrees of freedom of the robot
+  static constexpr size_t degrees_of_freedoms{7};
+
+  // Control rate of the robot [s]
+  static constexpr double control_rate{0.001};
+
+  /**
+   * @param fci_hostname The hostname or IP address of the robot.
+   */
   explicit Robot(const std::string &fci_hostname);
 
+  /**
+   * @param fci_hostname The hostname or IP address of the robot.
+   * @param params The parameters for the robot.
+   */
   explicit Robot(const std::string &fci_hostname, const Params &params);
 
   using franka::Robot::setCollisionBehavior;
 
+  /**
+   * @brief Set the collision behavior of the robot.
+   *
+   * @param torque_threshold The torque threshold for the collision behavior in Nm.
+   * @param force_threshold The force threshold for the collision behavior in N.
+   */
   void setCollisionBehavior(
       const ScalarOrArray<7> &torque_threshold,
       const ScalarOrArray<6> &force_threshold);
 
+  /**
+   * @brief Set the collision behavior of the robot.
+   *
+   * @param lower_torque_threshold The lower torque threshold for the collision behavior in Nm.
+   * @param upper_torque_threshold The upper torque threshold for the collision behavior in Nm.
+   * @param lower_force_threshold The lower force threshold for the collision behavior in N.
+   * @param upper_force_threshold The upper force threshold for the collision behavior in N.
+   */
   void setCollisionBehavior(
       const ScalarOrArray<7> &lower_torque_threshold,
       const ScalarOrArray<7> &upper_torque_threshold,
       const ScalarOrArray<6> &lower_force_threshold,
       const ScalarOrArray<6> &upper_force_threshold);
 
+  /**
+   * @brief Set the collision behavior of the robot.
+   *
+   * @param lower_torque_threshold_acceleration The lower torque threshold for the collision behavior in Nm during
+   * acceleration.
+   * @param upper_torque_threshold_acceleration The upper torque threshold for the collision behavior in Nm during
+   * acceleration.
+   * @param lower_torque_threshold_nominal The lower torque threshold for the collision behavior in Nm during nominal
+   * operation.
+   * @param upper_torque_threshold_nominal The upper torque threshold for the collision behavior in Nm during nominal
+   * operation.
+   * @param lower_force_threshold_acceleration The lower force threshold for the collision behavior in N during
+   * acceleration.
+   * @param upper_force_threshold_acceleration The upper force threshold for the collision behavior in N during
+   * acceleration.
+   * @param lower_force_threshold_nominal The lower force threshold for the collision behavior in N during nominal
+   * operation.
+   * @param upper_force_threshold_nominal The upper force threshold for the collision behavior in N during nominal
+   * operation.
+   */
   void setCollisionBehavior(
       const ScalarOrArray<7> &lower_torque_threshold_acceleration,
       const ScalarOrArray<7> &upper_torque_threshold_acceleration,
@@ -119,101 +208,201 @@ class Robot : public franka::Robot {
       const ScalarOrArray<6> &lower_force_threshold_nominal,
       const ScalarOrArray<6> &upper_force_threshold_nominal);
 
+  /**
+   * @brief Calls the automatic error recovery of the robot and returns whether the recovery was successful.
+   * @return Whether the recovery was successful.
+   */
   bool recoverFromErrors();
 
+  /**
+   * @brief Returns whether the robot has errors.
+   * @return Whether the robot has errors.
+   */
   [[nodiscard]] bool hasErrors();
 
+  /**
+   * @brief Returns the current pose of the robot.
+   * @return The current pose of the robot.
+   */
   [[nodiscard]] inline RobotPose currentPose() {
     return currentCartesianState().pose();
   }
 
+  /**
+   * @brief Returns the current cartesian velocity of the robot.
+   * @return The current cartesian velocity of the robot.
+   */
   [[nodiscard]] inline RobotVelocity currentCartesianVelocity() {
     return currentCartesianState().velocity();
   }
 
+  /**
+   * @brief Returns the current cartesian state of the robot.
+   * @return The current cartesian state of the robot.
+   */
   [[nodiscard]] inline CartesianState currentCartesianState() {
     auto s = state();
     return {{Affine(Eigen::Matrix4d::Map(s.O_T_EE.data())), s.elbow[0]},
             RobotVelocity(franka::CartesianVelocities(s.O_dP_EE_c, s.delbow_c))};
   }
 
+  /**
+   * @brief Returns the current joint state of the robot.
+   * @return The current joint state of the robot.
+   */
   [[nodiscard]] JointState currentJointState();
 
+  /**
+   * @brief Returns the current joint positions of the robot.
+   * @return The current joint positions of the robot.
+   */
   [[nodiscard]] Vector7d currentJointPositions();
 
+  /**
+   * @brief Returns the current joint velocities of the robot.
+   * @return The current joint velocities of the robot.
+   */
   [[nodiscard]] Vector7d currentJointVelocities();
 
+  /**
+   * @brief Returns the current state of the robot.
+   * @return The current state of the robot.
+   */
   [[nodiscard]] franka::RobotState state();
 
+  /**
+   * @brief Returns the current global relative dynamics factor of the robot.
+   * @return The current relative dynamics factor of the robot.
+   */
   [[nodiscard]] RelativeDynamicsFactor relative_dynamics_factor();
 
+  /**
+   * @brief Sets the global relative dynamics factor of the robot.
+   * @param relative_dynamics_factor The relative dynamics factor to set.
+   */
   void setRelativeDynamicsFactor(const RelativeDynamicsFactor &relative_dynamics_factor);
 
+  /**
+   * @brief Whether the robot is currently in control, i.e. a motion is being executed.
+   */
   [[nodiscard]] bool is_in_control();
 
+  /**
+   * @brief The hostname of the robot.
+   */
   [[nodiscard]] std::string fci_hostname() const;
 
+  /**
+   * @brief The type of the current control signal.
+   */
   [[nodiscard]] std::optional<ControlSignalType> current_control_signal_type();
 
+  /**
+   * @brief Wait for the current motion to finish. Throw any exceptions that occurred during the motion.
+   */
   inline bool joinMotion() {
     std::unique_lock<std::mutex> lock(control_mutex_);
     return joinMotionUnsafe(lock);
   }
 
+  /**
+   * @brief Wait for the current motion to finish with a timeout. Throw any exceptions that occurred during the motion.
+   *
+   * After the timeout has expired, the function will return false.
+   * @param timeout The timeout to wait for the motion to finish.
+   * @return Whether the motion finished before the timeout expired.
+   */
   template<class Rep, class Period>
   inline bool joinMotion(const std::chrono::duration<Rep, Period> &timeout) {
     std::unique_lock<std::mutex> lock(control_mutex_);
     return joinMotionUnsafe<Rep, Period>(lock, timeout);
   }
 
+  /**
+   * @brief Check whether the robot is still in motion. This function is non-blocking and returns immediately. Throw any
+   * exceptions that occurred during the motion.
+   * @return Whether the robot is still in motion.
+   */
+  [[nodiscard]]
   inline bool pollMotion() {
-    /*
-     * This function is used to check if the robot is still in motion. It is non-blocking and returns immediately. If
-     * errors occurred during the motion, they will be thrown by this function.
-     */
     return joinMotion(std::chrono::milliseconds(0));
   }
 
   // These helper functions are needed as the implicit template deduction does not work on subclasses of Motion
+
+  /**
+   * @brief Execute the given motion
+   * @param motion The motion to execute.
+   * @param async Whether to execute the motion asynchronously.
+   */
   inline void move(const std::shared_ptr<Motion<franka::CartesianPose>> &motion, bool async = false) {
     moveInternal<franka::CartesianPose>(motion, [this](const ControlFunc<franka::CartesianPose> &m) {
       control(m, params_.controller_mode);
     }, async);
   }
 
+  /**
+   * @brief Execute the given motion
+   * @param motion The motion to execute.
+   * @param async Whether to execute the motion asynchronously.
+   */
   inline void move(const std::shared_ptr<Motion<franka::CartesianVelocities>> &motion, bool async = false) {
     moveInternal<franka::CartesianVelocities>(motion, [this](const ControlFunc<franka::CartesianVelocities> &m) {
       control(m, params_.controller_mode);
     }, async);
   }
 
+  /**
+   * @brief Execute the given motion
+   * @param motion The motion to execute.
+   * @param async Whether to execute the motion asynchronously.
+   */
   inline void move(const std::shared_ptr<Motion<franka::JointPositions>> &motion, bool async = false) {
     moveInternal<franka::JointPositions>(motion, [this](const ControlFunc<franka::JointPositions> &m) {
       control(m, params_.controller_mode);
     }, async);
   }
 
+  /**
+   * @brief Execute the given motion
+   * @param motion The motion to execute.
+   * @param async Whether to execute the motion asynchronously.
+   */
   inline void move(const std::shared_ptr<Motion<franka::JointVelocities>> &motion, bool async = false) {
     moveInternal<franka::JointVelocities>(motion, [this](const ControlFunc<franka::JointVelocities> &m) {
       control(m, params_.controller_mode);
     }, async);
   }
 
+  /**
+   * @brief Execute the given motion
+   * @param motion The motion to execute.
+   * @param async Whether to execute the motion asynchronously.
+   */
   inline void move(const std::shared_ptr<Motion<franka::Torques>> &motion, bool async = false) {
     moveInternal<franka::Torques>(motion, [this](const ControlFunc<franka::Torques> &m) {
       control(m);
     }, async);
   }
 
+  /**
+   * @brief Calculate the inverse kinematics for the given target pose.
+   * @param target The target pose.
+   * @param q0 The initial guess for the joint positions.
+   * @return A vector containing the joint positions.
+   */
   [[nodiscard]] static Vector7d inverseKinematics(const Affine &target, const Vector7d &q0);
 
+  /**
+   * @brief Calculate the forward kinematics for the given joint positions.
+   * @param q The joint positions.
+   * @return The forward kinematics.
+   */
   [[nodiscard]] static Affine forwardKinematics(const Vector7d &q);
 
  private:
   template<typename ControlSignalType>
-  using ControlFunc = std::function<
-  ControlSignalType(const franka::RobotState &, franka::Duration)
-  >;
+  using ControlFunc = std::function<ControlSignalType(const franka::RobotState &, franka::Duration)>;
   using MotionGeneratorVariant = std::variant<
       std::nullopt_t,
       MotionGenerator<franka::Torques>,
@@ -323,10 +512,10 @@ class Robot : public franka::Robot {
 
   template<size_t dims>
   std::array<double, dims> expand(const ScalarOrArray<dims> &input) {
-    if (std::holds_alternative < std::array < double, dims >> (input)) {
-      return std::get < std::array < double, dims >> (input);
-    } else if (std::holds_alternative < Eigen::Vector < double, dims >> (input)) {
-      return toStd<dims>(std::get < Eigen::Vector < double, dims >> (input));
+    if (std::holds_alternative<std::array<double, dims >>(input)) {
+      return std::get<std::array<double, dims >>(input);
+    } else if (std::holds_alternative<Eigen::Vector<double, dims >>(input)) {
+      return toStd<dims>(std::get<Eigen::Vector<double, dims >>(input));
     } else {
       std::array<double, dims> output;
       std::fill(output.begin(), output.end(), std::get<double>(input));
