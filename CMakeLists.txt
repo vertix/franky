@@ -4,7 +4,6 @@ file(READ "VERSION" version)
 project(franky VERSION ${version} LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 include(GNUInstallDirs)
 
