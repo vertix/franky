@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import logging
 from pathlib import Path
-from typing import Dict, Optional, Sequence
+from typing import Dict, Optional, Iterable
 from collections import defaultdict
 
 from pybind11_stubgen import Writer, QualifiedName, Printer, arg_parser, stub_parser_from_args, to_output_and_subdir, \
@@ -10,7 +10,7 @@ from pybind11_stubgen.structs import Function, ResolvedType, Module
 
 
 class CustomWriter(Writer):
-    def __init__(self, alternative_types: Dict[str, Sequence[str, ...]], stub_ext: str = "pyi"):
+    def __init__(self, alternative_types: Dict[str, Iterable[str]], stub_ext: str = "pyi"):
         super().__init__(stub_ext=stub_ext)
         self.alternative_types = {
             QualifiedName.from_str(k): tuple(QualifiedName.from_str(e) for e in v) for k, v in alternative_types.items()
@@ -72,5 +72,5 @@ if __name__ == "__main__":
         out_dir,
         sub_dir=sub_dir,
         dry_run=args.dry_run,
-        writer=CustomWriter(IMPLICIT_CONVERSIONS, stub_ext=args.stub_extension),
+        writer=CustomWriter(alternatives, stub_ext=args.stub_extension),
     )
