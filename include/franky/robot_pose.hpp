@@ -9,7 +9,7 @@
 namespace franky {
 
 /**
- * @brief Represents the cartesian pose of a robot.
+ * @brief Cartesian pose of a robot.
  *
  * This class encapsulates the cartesian pose of a robot, which comprises the end effector pose and the elbow position.
  */

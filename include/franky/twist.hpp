@@ -7,7 +7,7 @@
 namespace franky {
 
 /**
- * @brief Represents the twist of a frame.
+ * @brief Twist of a frame.
  */
 class Twist {
  public:

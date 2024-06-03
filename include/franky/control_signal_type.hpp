@@ -2,6 +2,9 @@
 
 namespace franky {
 
+/**
+ * @brief Type of control signal.
+ */
 enum ControlSignalType {
   Torques,
   JointVelocities,
