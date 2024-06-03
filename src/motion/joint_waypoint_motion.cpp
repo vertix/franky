@@ -19,7 +19,7 @@ void JointWaypointMotion::initWaypointMotion(
   if (previous_command.has_value())
     input_parameter.current_position = previous_command->q;
   else
-    input_parameter.current_position = robot_state.q;
+    input_parameter.current_position = robot_state.q_d;
   input_parameter.current_velocity = robot_state.dq_d;
   input_parameter.current_acceleration = robot_state.ddq_d;
 }
