@@ -290,24 +290,24 @@ from franky import JointWaypointMotion, JointWaypoint, JointPositionStopMotion, 
     CartesianState, JointState
 
 # A point-to-point motion in the joint space
-m1 = JointWaypointMotion([JointWaypoint([-1.8, 1.1, 1.7, -2.1, -1.1, 1.6, -0.4])])
+m1 = JointWaypointMotion([JointWaypoint([-0.3, 0.1, 0.3, -1.4, 0.1, 1.8, 0.7])])
 
 # A motion in joint space with multiple waypoints
 m2 = JointWaypointMotion([
-    JointWaypoint([-1.8, 1.1, 1.7, -2.1, -1.1, 1.6, -0.4]),
-    JointWaypoint([-1.7, 1.2, 1.8, -2.0, -1.0, 1.7, -0.3]),
-    JointWaypoint([-1.9, 1.0, 1.6, -2.2, -1.2, 1.5, -0.5])
+    JointWaypoint([-0.3, 0.1, 0.3, -1.4, 0.1, 1.8, 0.7]),
+    JointWaypoint([0.0, 0.3, 0.3, -1.5, -0.2, 1.5, 0.8]),
+    JointWaypoint([0.1, 0.4, 0.3, -1.4, -0.3, 1.7, 0.9])
 ])
 
 # Intermediate waypoints also permit to specify target velocities. The default target velocity is 0, meaning that the
 # robot will stop at every waypoint.
 m3 = JointWaypointMotion([
-    JointWaypoint([-1.8, 1.1, 1.7, -2.1, -1.1, 1.6, -0.4]),
+    JointWaypoint([-0.3, 0.1, 0.3, -1.4, 0.1, 1.8, 0.7]),
     JointWaypoint(
         JointState(
-            position=[-1.7, 1.2, 1.8, -2.0, -1.0, 1.7, -0.3],
-            velocity=[0.1, .0, 0.3, .0, .0, 0.15, .0])),
-    JointWaypoint([-1.9, 1.0, 1.6, -2.2, -1.2, 1.5, -0.5])
+            position=[0.0, 0.3, 0.3, -1.5, -0.2, 1.5, 0.8],
+            velocity=[0.1, 0.0, 0.0, 0.0, -0.0, 0.0, 0.0])),
+    JointWaypoint([0.1, 0.4, 0.3, -1.4, -0.3, 1.7, 0.9])
 ])
 
 # Stop the robot
@@ -315,8 +315,8 @@ m4 = JointPositionStopMotion()
 
 # A linear motion in cartesian space
 quat = Rotation.from_euler("xyz", [0, 0, math.pi / 2]).as_quat()
-m5 = CartesianMotion(Affine([0.2, -0.4, 0.3], quat))
-m6 = CartesianMotion(RobotPose(Affine([0.2, -0.4, 0.3], quat), elbow_position=1.7))  # With target elbow angle
+m5 = CartesianMotion(Affine([0.4, -0.2, 0.3], quat))
+m6 = CartesianMotion(RobotPose(Affine([0.4, -0.2, 0.3], quat), elbow_position=0.3))  # With target elbow angle
 
 # A linear motion in cartesian space relative to the initial position
 # (Note that this motion is relative both in position and orientation. Hence, when the robot's end-effector is oriented
@@ -325,19 +325,19 @@ m7 = CartesianMotion(Affine([0.2, 0.0, 0.0]), ReferenceType.Relative)
 
 # Generalization of CartesianMotion that allows for multiple waypoints
 m8 = CartesianWaypointMotion([
-    CartesianWaypoint(RobotPose(Affine([0.2, -0.4, 0.3], quat), elbow_position=1.7)),
+    CartesianWaypoint(RobotPose(Affine([0.4, -0.2, 0.3], quat), elbow_position=0.3)),
     # The following waypoint is relative to the prior one and 50% slower
     CartesianWaypoint(Affine([0.2, 0.0, 0.0]), ReferenceType.Relative, RelativeDynamicsFactor(0.5, 1.0, 1.0))
 ])
 
 # Cartesian waypoints also permit to specify target velocities
 m9 = CartesianWaypointMotion([
-    CartesianWaypoint(Affine([0.3, 0.3, 0.3])),
+    CartesianWaypoint(Affine([0.5, -0.2, 0.3], quat)),
     CartesianWaypoint(
         CartesianState(
-            pose=Affine([0.4, 0.2, 0.3]),
-            velocity=Twist([0.1, -0.1, 0.0]))),
-    CartesianWaypoint(Affine([0.4, 0.2, 0.3]))
+            pose=Affine([0.4, -0.1, 0.3], quat),
+            velocity=Twist([-0.01, 0.01, 0.0]))),
+    CartesianWaypoint(Affine([0.3, 0.0, 0.3], quat))
 ])
 
 # Stop the robot. The difference of JointPositionStopMotion to CartesianPoseStopMotion is that JointPositionStopMotion
