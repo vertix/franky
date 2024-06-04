@@ -109,10 +109,9 @@ pip install --no-index --find-links=./dist franky-panda
 ```
 
 Franky is based on [libfranka](https://github.com/frankaemika/libfranka), [Eigen](https://eigen.tuxfamily.org) for transformation calculations and [pybind11](https://github.com/pybind/pybind11) for the Python bindings.
-Franky uses the [Ruckig](https://ruckig.com) Community Version for Online Trajectory Generation (OTG).
-As the Franka is quite sensitive to acceleration discontinuities, it requires constrained jerk for all motions.
-After installing the dependencies (the exact versions can be found below), you can build and install franky via
+As the Franka is sensitive to acceleration discontinuities, it requires jerk-constrained motion generation, for which franky uses the [Ruckig](https://ruckig.com) community version for Online Trajectory Generation (OTG).
 
+After installing the dependencies (the exact versions can be found [here](#development)), you can build and install franky via
 ```bash
 git clone --recurse-submodules git@github.com:timschneider42/franky.git
 cd franky
@@ -123,13 +122,13 @@ make
 make install
 ```
 
-To use franky, you can also include it as a subproject in your parent CMake via `add_subdirectory(franky)` and then `target_link_libraries(<target> libfranky)`. If you need only the Python module, you can install franky via
+To use franky, you can also include it as a subproject in your parent CMake via `add_subdirectory(franky)` and then `target_link_libraries(<target> libfranky)`. 
 
+If you need only the Python module, you can install franky via
 ```bash
 pip install .
 ```
-
-Make sure that the built library can be found from Python by adapting your Python Path.
+Make sure that the built library `_franky.cpython-3**-****-linux-gnu.so` is in the Python path, e.g. by adjusting `PYTHONPATH` accordingly.
 
 
 #### Using Docker
@@ -563,6 +562,7 @@ Franky is written in C++17 and Python3.7. It is currently tested against followi
 - Libfranka v0.7.1, v0.8.0, v0.9.2, v0.10.0, v0.11.0, v0.12.1, v0.13.3
 - Eigen v3.4.0
 - Pybind11 v2.11.1
+- Python 3.7, 3.8, 3.9, 3.10, 3.11, 3.12
 - Catch2 v2.13.8 (for testing only)
 
 ## License
