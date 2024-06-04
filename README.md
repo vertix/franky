@@ -492,7 +492,7 @@ double speed = 0.02; // [m/s]
 double force = 20.0; // [N]
 
 // Move the fingers to a specific width (5cm)
-bool success = gripper.move(0.05, speed, force);
+bool success = gripper.move(0.05, speed);
 
 // Grasp an object of unknown width
 success &= gripper.grasp(0.0, speed, force, epsilon_outer=1.0);
@@ -504,7 +504,7 @@ double width = gripper.width();
 gripper.open(speed);
 
 // There are also asynchronous versions of the methods
-std::future<bool> success_future = gripper.moveAsync(0.05, speed, force);
+std::future<bool> success_future = gripper.moveAsync(0.05, speed);
 
 // Wait for 1s
 if (!success_future.wait_for(std::chrono::seconds(1)) == std::future_status::ready) {
@@ -527,19 +527,19 @@ speed = 0.02  # [m/s]
 force = 20.0  # [N]
 
 # Move the fingers to a specific width (5cm)
-success = gripper.move(0.05, speed, force)
+success = gripper.move(0.05, speed)
 
 # Grasp an object of unknown width
 success &= gripper.grasp(0.0, speed, force, epsilon_outer=1.0)
 
 # Get the width of the grasped object
-width = gripper.width()
+width = gripper.width
 
 # Release the object
 gripper.open(speed)
 
 # There are also asynchronous versions of the methods
-success_future = gripper.move_async(0.05, speed, force)
+success_future = gripper.move_async(0.05, speed)
 
 # Wait for 1s
 if success_future.wait(1):
