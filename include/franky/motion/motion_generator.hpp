@@ -11,6 +11,9 @@
 
 namespace franky {
 
+/**
+ * @brief Exception thrown when the reaction recursion limit (8) is reached.
+ */
 struct ReactionRecursionException : public std::runtime_error {
   using std::runtime_error::runtime_error;
 };
@@ -20,24 +23,56 @@ class Robot;
 template<typename ControlSignalType>
 class Motion;
 
+/**
+ * @brief Helper class for handling motions and reactions.
+ */
 template<typename ControlSignalType>
 class MotionGenerator {
  public:
+  /**
+   * @brief Maximum recursion limit for reactions. After more than this number of reactions are fired in a single step,
+   * the motion generator will throw a ReactionRecursionException.
+   */
   static constexpr size_t REACTION_RECURSION_LIMIT = 8;
 
+  /**
+   * @param robot The robot instance.
+   * @param initial_motion The initial motion.
+   */
   explicit MotionGenerator(Robot *robot, std::shared_ptr<Motion<ControlSignalType>> initial_motion);
 
+  /**
+   * @brief Update the motion generator and get the next control signal.
+   * @param robot_state The current robot state.
+   * @param period The time step.
+   * @return The control signal for the robot.
+   */
   ControlSignalType operator()(const franka::RobotState &robot_state, franka::Duration period);
 
+  /**
+   * @brief Register a callback that is called in every step of the motion.
+   * @param callback The callback to register. Callbacks are called with the robot state, the time step [s], the
+   * relative time [s] and the control signal computed in this step.
+   */
   inline void
   registerUpdateCallback(const std::function<void(const franka::RobotState &, franka::Duration, double)> &callback) {
     update_callbacks_.push_back(callback);
   }
 
+  /**
+   * @brief Update the current motion.
+   * @param new_motion The new motion.
+   */
   void updateMotion(std::shared_ptr<Motion<ControlSignalType>> new_motion);
 
+  /**
+   * @brief Whether a new motion is available.
+   */
   bool has_new_motion();
 
+  /**
+   * @brief Reset the time of the motion generator without locking the mutex.
+   */
   void resetTimeUnsafe();
 
  private:

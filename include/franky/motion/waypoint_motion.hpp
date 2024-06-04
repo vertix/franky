@@ -11,31 +11,55 @@
 
 namespace franky {
 
+/**
+ * @brief A waypoint with a target and optional parameters.
+ *
+ * @tparam TargetType The type of the target.
+ *
+ * @param target The target of this waypoint.
+ * @param reference_type The reference type (absolute or relative).
+ * @param relative_dynamics_factor The relative dynamics factor for this waypoint. This factor will get multiplied with
+ * the robot's global dynamics factor and the motion dynamics factor to get the actual dynamics factor for this
+ * waypoint.
+ * @param minimum_time The minimum time to get to the next waypoint in [s].
+ */
 template<typename TargetType>
 struct Waypoint {
   TargetType target;
 
   ReferenceType reference_type{ReferenceType::Absolute};
 
-  //! Dynamic Waypoint: Relative dynamics factor
   RelativeDynamicsFactor relative_dynamics_factor{1.0};
 
-  //! Dynamic Waypoint: Minimum time to get to next waypoint
   std::optional<double> minimum_time{std::nullopt};
 };
 
 /**
-* A motion following multiple waypoints (with intermediate zero velocity) in a time-optimal way.
-* Works with arbitrary initial conditions.
-*/
+ * @brief A motion following multiple waypoints in a time-optimal way. Works with arbitrary initial conditions.
+ * @tparam ControlSignalType The type of the control signal. Either franka::Torques, franka::JointVelocities,
+ * franka::CartesianVelocities, franka::JointPositions or franka::CartesianPose.
+ * @tparam TargetType The type of the target of the waypoints.
+ */
 template<typename ControlSignalType, typename TargetType>
 class WaypointMotion : public Motion<ControlSignalType> {
  public:
+  /**
+   * @brief Parameters for the waypoint motion.
+   *
+   * @param relative_dynamics_factor The relative dynamics factor for this motion. This factor will get multiplied with
+   * the robot's global dynamics factor to get the actual dynamics factor for this motion.
+   * @param return_when_finished Whether to end the motion when the last waypoint is reached or keep holding the last
+   * target.
+   */
   struct Params {
     RelativeDynamicsFactor relative_dynamics_factor{1.0};
     bool return_when_finished{true};
   };
 
+    /**
+     * @param waypoints The waypoints to follow.
+     * @param params Parameters for the motion.
+     */
   explicit WaypointMotion(std::vector<Waypoint<TargetType>> waypoints, Params params)
       : waypoints_(std::move(waypoints)), params_(std::move(params)), prev_result_() {}
 

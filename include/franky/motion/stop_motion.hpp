@@ -9,6 +9,9 @@ namespace franky {
 template<typename ControlSignalType>
 class StopMotion;
 
+/**
+ * @brief Stop motion for joint position control mode.
+ */
 template<>
 class StopMotion<franka::JointPositions> : public JointWaypointMotion {
  public:
@@ -20,6 +23,9 @@ class StopMotion<franka::JointPositions> : public JointWaypointMotion {
        }}) {}
 };
 
+/**
+ * @brief Stop motion for cartesian pose control mode.
+ */
 template<>
 class StopMotion<franka::CartesianPose> : public CartesianWaypointMotion {
  public:

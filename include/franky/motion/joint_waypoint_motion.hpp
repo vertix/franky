@@ -11,10 +11,22 @@
 
 namespace franky {
 
+/**
+ * @brief Joint waypoint motion.
+ *
+ * This motion follows multiple joint waypoints in a time-optimal way.
+ */
 class JointWaypointMotion : public WaypointMotion<franka::JointPositions, JointState> {
  public:
+  /**
+   * @param waypoints Joint waypoints to follow.
+   */
   explicit JointWaypointMotion(const std::vector<Waypoint<JointState>> &waypoints);
 
+  /**
+   * @param waypoints Joint waypoints to follow.
+   * @param params Parameters for the motion.
+   */
   explicit JointWaypointMotion(const std::vector<Waypoint<JointState>> &waypoints, Params params);
 
  protected:

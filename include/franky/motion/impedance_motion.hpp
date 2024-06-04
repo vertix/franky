@@ -12,9 +12,24 @@
 
 namespace franky {
 
+/**
+ * @brief Base class for client-side cartesian impedance motions.
+ *
+ * This motion is a implements a cartesian impedance controller on the client side and does not use
+ * Franka's internal impedance controller. Instead, it uses Franka's internal torque controller and calculates the
+ * torques itself.
+ */
 class ImpedanceMotion : public Motion<franka::Torques> {
  public:
- public:
+  /**
+   * @brief Parameters for the impedance motion.
+   *
+   * @param target_type The type of the target reference (relative or absolute).
+   * @param translational_stiffness The translational stiffness in [10, 3000] N/m.
+   * @param rotational_stiffness The rotational stiffness in [1, 300] Nm/rad.
+   * @param force_constraints The force constraints in [N, Nm] for each joint.
+   * @param force_constraints_active Allows to enable or disable individual force constraints.
+   */
   struct Params {
     ReferenceType target_type{ReferenceType::Absolute};
     double translational_stiffness{2000};
@@ -23,10 +38,10 @@ class ImpedanceMotion : public Motion<franka::Torques> {
     Eigen::Vector<bool, 6> force_constraints_active{Eigen::Vector<bool, 6>::Zero()};
   };
 
-  ///
-  /// \param frame
-  /// \param translational_stiffness  in [10, 3000] N/m
-  /// \param rotational_stiffness     in [1, 300] Nm/rad
+  /**
+   * @param target The target pose.
+   * @param params Parameters for the motion.
+   */
   explicit ImpedanceMotion(Affine target, const Params &params);
 
  protected:

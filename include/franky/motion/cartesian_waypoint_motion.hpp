@@ -15,18 +15,36 @@
 
 namespace franky {
 
+/**
+ * @brief Cartesian waypoint motion.
+ *
+ * This motion follows multiple cartesian waypoints in a time-optimal way.
+ */
 class CartesianWaypointMotion : public WaypointMotion<franka::CartesianPose, CartesianState> {
  public:
+  /**
+   * @brief Parameters for the Cartesian waypoint motion.
+   * @see WaypointMotion::Params
+   *
+   * @param frame The end-effector frame for which the target is defined. This is a transformation from the configured
+   * end-effector frame to the end-effector frame the target is defined for.
+   */
   struct Params : WaypointMotion<franka::CartesianPose, CartesianState>::Params {
     Affine frame{Affine::Identity()};
   };
 
+  /**
+   * @param waypoints Waypoints to follow.
+   */
   explicit CartesianWaypointMotion(const std::vector<Waypoint<CartesianState>> &waypoints);
 
+  /**
+   * @param waypoints Waypoints to follow.
+   * @param params Parameters for the motion.
+   */
   explicit CartesianWaypointMotion(const std::vector<Waypoint<CartesianState>> &waypoints, Params params);
 
  protected:
-
   void initWaypointMotion(
       const franka::RobotState &robot_state,
       const std::optional<franka::CartesianPose> &previous_command,
