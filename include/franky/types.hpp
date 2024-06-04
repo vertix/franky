@@ -12,9 +12,4 @@ using Euler = Eigen::EulerAngles<double, Eigen::EulerSystemXYZ>;
 
 using Affine = Eigen::Affine3d;
 
-class timeout_exception : public std::runtime_error {
- public:
-  using std::runtime_error::runtime_error;
-};
-
 }
