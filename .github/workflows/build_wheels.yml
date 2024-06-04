@@ -23,17 +23,17 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Install dependencies
+        run: |
+          yum -y install poco-devel* zip
+          LIBFRANKA_VERSION=${{ inputs.libfranka-version }} ./docker/common/install-dependencies
+
       - name: Setting up pip
         run: |
           ./docker/common/manylinux-setup-pip
 
-      - name: Install dependencies
-        run: |
-          LIBFRANKA_VERSION=${{ inputs.libfranka-version }} ./docker/common/install-dependencies
-
       - name: Python package
         run: |
-          yum -y install zip
           LIBFRANKA_VERSION=${{ inputs.libfranka-version }} ./docker/common/manylinux-build-wheels
 
       - name: Upload wheels
