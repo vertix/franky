@@ -25,11 +25,12 @@ class CartesianWaypointMotion : public WaypointMotion<franka::CartesianPose, Car
   /**
    * @brief Parameters for the Cartesian waypoint motion.
    * @see WaypointMotion::Params
-   *
-   * @param frame The end-effector frame for which the target is defined. This is a transformation from the configured
-   * end-effector frame to the end-effector frame the target is defined for.
    */
   struct Params : WaypointMotion<franka::CartesianPose, CartesianState>::Params {
+    /**
+     * The end-effector frame for which the target is defined. This is a transformation from the configured
+     * end-effector frame to the end-effector frame the target is defined for.
+     */
     Affine frame{Affine::Identity()};
   };
 

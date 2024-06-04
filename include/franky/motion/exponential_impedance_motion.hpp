@@ -23,10 +23,9 @@ class ExponentialImpedanceMotion : public ImpedanceMotion {
   /**
    * @brief Parameters for the exponential cartesian impedance motion.
    * @see ImpedanceMotion::Params
-   *
-   * @param exponential_decay The exponential decay factor for the impedance controller.
    */
   struct Params : public ImpedanceMotion::Params {
+    /** The exponential decay factor for the impedance controller. */
     double exponential_decay{0.005};
   };
 

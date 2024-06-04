@@ -52,14 +52,17 @@ class WaypointMotion : public Motion<ControlSignalType> {
  public:
   /**
    * @brief Parameters for the waypoint motion.
-   *
-   * @param relative_dynamics_factor The relative dynamics factor for this motion. This factor will get multiplied with
-   * the robot's global dynamics factor to get the actual dynamics factor for this motion.
-   * @param return_when_finished Whether to end the motion when the last waypoint is reached or keep holding the last
-   * target.
    */
   struct Params {
+    /**
+     * The relative dynamics factor for this motion. This factor will get multiplied with the robot's global dynamics
+     * factor to get the actual dynamics factor for this motion.
+     */
     RelativeDynamicsFactor relative_dynamics_factor{1.0};
+
+    /**
+     * Whether to end the motion when the last waypoint is reached or keep holding the last target.
+     */
     bool return_when_finished{true};
   };
 

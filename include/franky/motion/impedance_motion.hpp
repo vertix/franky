@@ -23,18 +23,21 @@ class ImpedanceMotion : public Motion<franka::Torques> {
  public:
   /**
    * @brief Parameters for the impedance motion.
-   *
-   * @param target_type The type of the target reference (relative or absolute).
-   * @param translational_stiffness The translational stiffness in [10, 3000] N/m.
-   * @param rotational_stiffness The rotational stiffness in [1, 300] Nm/rad.
-   * @param force_constraints The force constraints in [N, Nm] for each joint.
-   * @param force_constraints_active Allows to enable or disable individual force constraints.
    */
   struct Params {
+    /** The type of the target reference (relative or absolute). */
     ReferenceType target_type{ReferenceType::Absolute};
+
+    /** The translational stiffness in [10, 3000] N/m. */
     double translational_stiffness{2000};
+
+    /** The rotational stiffness in [1, 300] Nm/rad. */
     double rotational_stiffness{200};
+
+    /** The force constraints in [N, Nm] for each joint. */
     Eigen::Vector<double, 6> force_constraints;
+
+    /** Allows to enable or disable individual force constraints. */
     Eigen::Vector<bool, 6> force_constraints_active{Eigen::Vector<bool, 6>::Zero()};
   };
 
