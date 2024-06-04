@@ -21,15 +21,16 @@ class CartesianImpedanceMotion : public ImpedanceMotion {
   /**
    * @brief Parameters for the Cartesian impedance motion.
    * @see ImpedanceMotion::Params
-   *
-   * @param return_when_finished Whether to end the motion when the target is reached or keep holding the last target.
-   * @param finish_wait_factor How long to wait after the motion has finished. This factor gets multiplied with the
-   * duration of the motion to obtain the total motion duration. After the motion duration has expired, the motion
-   * will hold the target until the total motion duration is reached. E.g. a factor of 1.2 will hold the target for
-   * 20% longer than the motion duration.
    */
   struct Params : public ImpedanceMotion::Params {
+    /** Whether to end the motion when the target is reached or keep holding the last target. */
     bool return_when_finished{true};
+    /**
+     * How long to wait after the motion has finished. This factor gets multiplied with the
+     * duration of the motion to obtain the total motion duration. After the motion duration has expired, the motion
+     * will hold the target until the total motion duration is reached. E.g. a factor of 1.2 will hold the target for
+     * 20% longer than the motion duration.
+     */
     double finish_wait_factor{1.2};
   };
 
