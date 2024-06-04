@@ -52,23 +52,29 @@ class Robot : public franka::Robot {
    */
   struct Params {
     /**
-     * @brief The relative dynamics factor for the robot. The maximum velocity, acceleration and jerk of the robot are
+     * The relative dynamics factor for the robot. The maximum velocity, acceleration and jerk of the robot are
      * scaled by the factors specified here.
      */
     RelativeDynamicsFactor relative_dynamics_factor{1.0};
 
     /**
-     * @brief The default torque threshold for collision behavior.
+     * The default torque threshold for collision behavior.
      */
     double default_torque_threshold{20.0};
 
     /**
-     * @brief The default force threshold for collision behavior.
+     * The default force threshold for collision behavior.
      */
     double default_force_threshold{30.0};
 
+    /**
+     * The default controller mode for the robot, see libfranka documentation for details.
+     */
     franka::ControllerMode controller_mode{franka::ControllerMode::kJointImpedance};
 
+    /**
+     * The default realtime configuration for the robot, see libfranka documentation for details.
+     */
     franka::RealtimeConfig realtime_config{franka::RealtimeConfig::kEnforce};
   };
 
@@ -90,55 +96,55 @@ class Robot : public franka::Robot {
           Eigen::Matrix<double, 3, 1>::Ones())
   );
 
-  // Maximum translational velocity [m/s]
+  /** Maximum translational velocity [m/s] */
   static constexpr double max_translation_velocity{1.7};
 
-  // Maximum rotational velocity [rad/s]
+  /** Maximum rotational velocity [rad/s] */
   static constexpr double max_rotation_velocity{2.5};
 
-  // Maximum elbow velocity [rad/s]
+  /** Maximum elbow velocity [rad/s] */
   static constexpr double max_elbow_velocity{2.175};
 
-  // Maximum translational acceleration [m/s²]
+  /** Maximum translational acceleration [m/s²] */
   static constexpr double max_translation_acceleration{13.0};
 
-  // Maximum rotational acceleration [rad/s²]
+  /** Maximum rotational acceleration [rad/s²] */
   static constexpr double max_rotation_acceleration{25.0};
 
-  // Maximum elbow acceleration [rad/s²]
+  /** Maximum elbow acceleration [rad/s²] */
   static constexpr double max_elbow_acceleration{10.0};
 
-  // Maximum translational jerk [m/s³]
+  /** Maximum translational jerk [m/s³] */
   static constexpr double max_translation_jerk{6500.0};
 
-  // Maximum rotational jerk [rad/s³]
+  /** Maximum rotational jerk [rad/s³] */
   static constexpr double max_rotation_jerk{12500.0};
 
-  // Maximum elbow jerk [rad/s³]
+  /** Maximum elbow jerk [rad/s³] */
   static constexpr double max_elbow_jerk{5000.0};
 
-  // Maximum joint velocity [rad/s]
+  /** Maximum joint velocity [rad/s] */
   static constexpr std::array<double, 7>
       max_joint_velocity{
       {2.175, 2.175, 2.175, 2.175, 2.610, 2.610, 2.610}
   };
 
-  // Maximum joint acceleration [rad/s²]
+  /** Maximum joint acceleration [rad/s²] */
   static constexpr std::array<double, 7>
       max_joint_acceleration{
       {15.0, 7.5, 10.0, 12.5, 15.0, 20.0, 20.0}
   };
 
-  // Maximum joint jerk [rad/s³]
+  /** Maximum joint jerk [rad/s³] */
   static constexpr std::array<double, 7>
       max_joint_jerk{
       {7500.0, 3750.0, 5000.0, 6250.0, 7500.0, 10000.0, 10000.0}
   };
 
-  // Number of degrees of freedom of the robot
+  /** Number of degrees of freedom of the robot */
   static constexpr size_t degrees_of_freedoms{7};
 
-  // Control rate of the robot [s]
+  /** Control rate of the robot [s] */
   static constexpr double control_rate{0.001};
 
   /**
