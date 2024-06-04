@@ -95,7 +95,7 @@ $ groups
 If realtime is not listed in your groups, try rebooting.
 
 ### Installing franky
-To start using franky with Python and libfranka *0.12.1*, just install it via
+To start using franky with Python and libfranka *0.13.3*, just install it via
 ```bash
 pip install franky-panda
 ```
