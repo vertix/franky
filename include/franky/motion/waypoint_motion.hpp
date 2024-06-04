@@ -12,6 +12,13 @@
 namespace franky {
 
 /**
+ * @brief Exception thrown if the motion planner fails.
+ */
+struct MotionPlannerException : public std::runtime_error {
+  using std::runtime_error::runtime_error;
+};
+
+/**
  * @brief A waypoint with a target and optional parameters.
  *
  * @tparam TargetType The type of the target.
@@ -56,10 +63,10 @@ class WaypointMotion : public Motion<ControlSignalType> {
     bool return_when_finished{true};
   };
 
-    /**
-     * @param waypoints The waypoints to follow.
-     * @param params Parameters for the motion.
-     */
+  /**
+   * @param waypoints The waypoints to follow.
+   * @param params Parameters for the motion.
+   */
   explicit WaypointMotion(std::vector<Waypoint<TargetType>> waypoints, Params params)
       : waypoints_(std::move(waypoints)), params_(std::move(params)), prev_result_() {}
 
@@ -110,7 +117,7 @@ class WaypointMotion : public Motion<ControlSignalType> {
       if (waypoint_iterator_ != waypoints_.end()) {
         prev_result_ = trajectory_generator_.update(input_para_, output_para_);
         if (prev_result_ == ruckig::Result::Error) {
-          throw std::runtime_error("Invalid inputs to motion planner.");
+          throw MotionPlannerException("Invalid inputs to motion planner.");
         }
         output_para_.pass_to_input(input_para_);
       }
