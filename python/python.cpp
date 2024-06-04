@@ -1018,6 +1018,15 @@ PYBIND11_MODULE(_franky, m) {
       .def_static("forward_kinematics", &Robot::forwardKinematics, "q"_a)
       .def_static("inverseKinematics", &Robot::inverseKinematics, "target"_a, "q0"_a);
 
+  py::class_<std::future<bool>>(m, "BoolFuture")
+      .def("wait", [](const std::future<bool> &future, std::optional<double> timeout) {
+          if (timeout.has_value())
+            return future.wait_for(std::chrono::duration<double>(timeout.value())) == std::future_status::ready;
+          future.wait();
+          return true;
+        }, "timeout"_a = std::nullopt)
+      .def("get", &std::future<bool>::get);
+
   py::register_exception<franka::Exception>(m, "Exception");
   py::register_exception<franka::CommandException>(m, "CommandException");
   py::register_exception<franka::ControlException>(m, "ControlException");

@@ -53,6 +53,7 @@ from ._franky import (
     JointPositions,
     CartesianVelocities,
     CartesianPose,
+    BoolFuture,
     CommandException,
     ControlException,
     IncompatibleVersionException,
