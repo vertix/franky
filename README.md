@@ -167,10 +167,10 @@ docker compose run --rm franky-build build-wheels  # To build wheels for all sup
 
 ## Tutorial
 
-Franky comes with both a C++ and Python API that differ only regarding real-time capability. We will introduce both languages next to each other. In your C++ project, just include `include <franky/franky.hpp>` and link the library. For Python, just `import franky`. As a first example, only four lines of code are needed for simple robotic motions.
+Franky comes with both a C++ and Python API that differ only regarding real-time capability. We will introduce both languages next to each other. In your C++ project, just include `include <franky.hpp>` and link the library. For Python, just `import franky`. As a first example, only four lines of code are needed for simple robotic motions.
 
 ```c++
-#include <franky/franky.hpp>
+#include <franky.hpp>
 using namespace franky;
 
 // Connect to the robot with the FCI IP address
@@ -482,29 +482,73 @@ In the `franky::Gripper` class, the default gripper force and gripper speed can 
 Then, additionally to the libfranka commands, the following helper methods can be used:
 
 ```c++
-auto gripper = Gripper("172.16.0.2");
+#include <franky.hpp>
+#include <chrono>
+#include <future>
 
-// These are the default values
-gripper.gripper_speed = 0.02; // [m/s]
-gripper.gripper_force = 20.0; // [N]
+auto gripper = franky::Gripper("172.16.0.2");
 
-// Preshape gripper before grasp, use the given speed
-gripper.move(0.05); // [m]
+double speed = 0.02; // [m/s]
+double force = 20.0; // [N]
+
+// Move the fingers to a specific width (5cm)
+bool success = gripper.move(0.05, speed, force);
 
 // Grasp an object of unknown width
-is_grasping = gripper.clamp();
+success &= gripper.grasp(0.0, speed, force, epsilon_outer=1.0);
 
-// Do something
-is_grasping &= gripper.isGrasping();
+// Get the width of the grasped object
+double width = gripper.width();
 
-// Release an object and move to a given distance
-if (is_grasping) {
-  gripper.release(0.05);
+// Release the object
+gripper.open(speed);
+
+// There are also asynchronous versions of the methods
+std::future<bool> success_future = gripper.moveAsync(0.05, speed, force);
+
+// Wait for 1s
+if (!success_future.wait_for(std::chrono::seconds(1)) == std::future_status::ready) {
+  // Get the result
+  std::cout << "Success: " << success_future.get() << std::endl;
+} else {
+  gripper.stop();
+  success_future.wait();
+  std::cout << "Gripper motion timed out." << std::endl;
 }
 ```
 
-The Python API is straight-forward for the Gripper class.
+The Python API follows the c++ API closely:
+```python
+import franky
 
+gripper = franky.Gripper("172.16.0.2")
+
+speed = 0.02  # [m/s]
+force = 20.0  # [N]
+
+# Move the fingers to a specific width (5cm)
+success = gripper.move(0.05, speed, force)
+
+# Grasp an object of unknown width
+success &= gripper.grasp(0.0, speed, force, epsilon_outer=1.0)
+
+# Get the width of the grasped object
+width = gripper.width()
+
+# Release the object
+gripper.open(speed)
+
+# There are also asynchronous versions of the methods
+success_future = gripper.move_async(0.05, speed, force)
+
+# Wait for 1s
+if success_future.wait(1):
+    print(f"Success: {success_future.get()}")
+else:
+    gripper.stop()
+    success_future.wait()
+    print("Gripper motion timed out.")
+```
 
 ## Documentation
 
