@@ -1,4 +1,3 @@
-from .gripper import Gripper
 from .robot import Robot
 from .robot_web_session import RobotWebSession
 from .reaction import (
@@ -35,6 +34,7 @@ from ._franky import (
     LinearMotion,
     CartesianPoseStopMotion,
     JointPositionStopMotion,
+    Gripper,
     Kinematics,
     RobotPose,
     RobotVelocity,

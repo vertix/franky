@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cmath>
-#include <iostream>
 #include <future>
 
 #include <franka/exception.h>
@@ -16,85 +14,94 @@ struct GripperException : public std::runtime_error {
   using std::runtime_error::runtime_error;
 };
 
+/**
+ * @brief A wrapper around the franka::Gripper class that adds asynchronous functionality.
+ */
 class Gripper : public franka::Gripper {
  public:
-  // Maximum speed of the gripper [m/s]
-  static constexpr double max_speed{0.1};
+  explicit Gripper(const std::string &franka_address) : franka::Gripper(franka_address) {}
+
+  Gripper(Gripper &&gripper) noexcept: franka::Gripper(std::move(gripper)) {}
 
   /**
-   * @param fci_hostname The hostname of the Franka robot.
-   * @param speed The speed of the gripper. Default is 0.04.
-   * @param force The force of the gripper. Default is 20.0.
-   */
-  explicit Gripper(const std::string &fci_hostname, double speed = 0.04, double force = 20.0);
-
-  // Force of the gripper [N]
-  double gripper_force{20.0};
-
-  // Speed of the gripper [m/s]
-  double gripper_speed{0.04};
-
-  // Flag to indicate if the gripper has an error
-  bool has_error{false};
-
-  // Maximum width of the gripper [m]
-  const double max_width{0.081 + width_calibration};
-
-  /*
-   * @brief Get the current width of the gripper.
-   */
-  [[nodiscard]] double width() const;
-
-  /*
-   * @brief Check if the gripper is grasping.
-   */
-  [[nodiscard]] bool isGrasping() const;
-
-  /*
-   * @brief Move the gripper to the given width.
+   * @brief Asynchronous variant of the franka::Gripper::grasp function.
    *
-   * @param width The width to move to [m]
-   * @return True if the gripper moved successfully.
+   * @param width Size of the object to grasp in [m].
+   * @param speed Closing speed in [m/s].
+   * @param force Grasping force in [N].
+   * @param epsilon_inner Maximum tolerated deviation when the actual grasped width is smaller than the commanded grasp
+   * width.
+   * @param epsilon_outer Maximum tolerated deviation when the actual grasped width is larger than the commanded grasp
+   * width.
+   * @return Future that becomes ready when the grasp is finished. Contains true if an object has been grasped, false
+   * otherwise.
    */
-  bool move(double width);
-
-  /*
-   * @brief Move the gripper to the given width without checking the current width.
-   *
-   * @param width The width to move to [m]
-   * @return True if the gripper moved successfully.
-   */
-  bool moveUnsafe(double width);
-
-  /*
-   * @brief Move the gripper to the given width asynchronously.
-   *
-   * @param width The width to move to [m]
-   * @return A future that will be set to true if the gripper moved successfully.
-   */
-  std::future<bool> moveAsync(double width);
-
-  bool open();
-  bool clamp();
-  bool clamp(double min_clamping_width);
-
-  bool release();
-  bool release(double width); // [m]
-  bool releaseRelative(double width); // [m]
-
-  ::franka::GripperState get_state();
-
- private:
-  // Difference from gripper jaws [m
-  const double width_calibration{0.004};
-  // Minimum width of the gripper [m]
-  const double min_width{0.002};
+  std::future<bool> graspAsync(
+      double width, double speed, double force, double epsilon_inner = 0.005, double epsilon_outer = 0.005) const;
 
   /**
-  * Save clamp width and compare it in the is_grasping method. If it's smaller,
-  * the gripper moves and the object is missing. [m]
-  */
-  double last_clamp_width{};
+   * @brief Asynchronous variant of the franka::Gripper::move function.
+   * @param width Intended opening width in [m].
+   * @param speed Speed of the movement in [m/s].
+   * @return Future that becomes ready when the movement is finished. Contains true if the movement was successful,
+   */
+  std::future<bool> moveAsync(double width, double speed) const;
+
+  /**
+   * @brief Opens the gripper fully.
+   * @param speed Speed of the movement in [m/s].
+   * @return True if the gripper was opened successfully.
+   */
+  bool open(double speed);
+
+  /**
+   * @brief Asynchronous variant of the open function.
+   * @param speed Speed of the movement in [m/s].
+   * @return Future that becomes ready when the gripper is fully opened. Contains true if the gripper was opened
+   * successfully.
+   */
+  std::future<bool> openAsync(double speed);
+
+  /**
+   * @brief Asynchronous variant of the franka::Gripper::homing function.
+   * @return A future that becomes ready when the homing is finished. Contains true if the homing was successful.
+   */
+  std::future<bool> homingAsync();
+
+  /**
+    * @brief Asynchronous variant of the franka::Gripper::stop function.
+    * @return A future that becomes ready when the stop is finished. Contains true if the stop was successful.
+    */
+  std::future<bool> stopAsync();
+
+  /**
+   * @brief Current opening width of the gripper [m]
+   */
+  [[nodiscard]] inline double width() const {
+    return state().width;
+  }
+
+  /**
+   * @brief Whether the gripper is grasping
+   */
+  [[nodiscard]] inline bool is_grasped() const {
+    return state().is_grasped;
+  }
+
+  /**
+   * @brief Maximum width of the gripper [m]
+   */
+  [[nodiscard]] inline double max_width() const {
+    return state().max_width;
+  }
+
+  /**
+   * @brief Current gripper state.
+   */
+  [[nodiscard]] inline franka::GripperState state() const {
+    return readOnce();
+  }
+
 };
 
-} // namepace franky
+} // namespace franky

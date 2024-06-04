@@ -867,32 +867,33 @@ PYBIND11_MODULE(_franky, m) {
              std::shared_ptr<StopMotion<franka::JointPositions>>>(m, "JointPositionStopMotion")
       .def(py::init<>());
 
-  py::class_<Gripper>(m, "GripperInternal")
-      .def(py::init<const std::string &, double, double>(), "fci_hostname"_a, "speed"_a = 0.02, "force"_a = 20.0)
-      .def_readwrite("gripper_force", &Gripper::gripper_force)
-      .def_readwrite("gripper_speed", &Gripper::gripper_speed)
-      .def_readonly("max_width", &Gripper::max_width)
-      .def_readonly("has_error", &Gripper::has_error)
-      .def("homing", &Gripper::homing, py::call_guard<py::gil_scoped_release>())
+  py::class_<Gripper>(m, "Gripper")
+      .def(py::init<const std::string &>(), "fci_hostname"_a)
       .def("grasp", &Gripper::grasp,
-           "width"_a, "speed"_a, "force"_a, "epsilon_inner"_a = 0.005, "epsilon_outer"_a = 0.005,
-           py::call_guard<py::gil_scoped_release>())
-      .def("move", &franka::Gripper::move, "width"_a, "speed"_a, py::call_guard<py::gil_scoped_release>())
+           "width"_a,
+           "speed"_a,
+           "force"_a,
+           "epsilon_inner"_a = 0.005,
+           "epsilon_outer"_a = 0.005)
+      .def("grasp_async", &Gripper::graspAsync,
+           "width"_a,
+           "speed"_a,
+           "force"_a,
+           "epsilon_inner"_a = 0.005,
+           "epsilon_outer"_a = 0.005)
+      .def("move", &Gripper::move, "width"_a, "speed"_a)
+      .def("move_async", &Gripper::moveAsync, "width"_a, "speed"_a)
+      .def("open", &Gripper::open, "speed"_a)
+      .def("open_async", &Gripper::openAsync, "speed"_a)
+      .def("homing", &Gripper::homing)
+      .def("homing_async", &Gripper::homingAsync)
       .def("stop", &Gripper::stop)
-      .def("move", &Gripper::move, "width"_a, py::call_guard<py::gil_scoped_release>())
-      .def("move_unsafe", &Gripper::move, "width"_a, py::call_guard<py::gil_scoped_release>())
-      .def("open", &Gripper::open, py::call_guard<py::gil_scoped_release>())
-      .def("clamp", py::overload_cast<>(&Gripper::clamp), py::call_guard<py::gil_scoped_release>())
-      .def("clamp", py::overload_cast<double>(&Gripper::clamp),
-           "min_clamping_width"_a, py::call_guard<py::gil_scoped_release>())
-      .def("release", py::overload_cast<>(&Gripper::release), py::call_guard<py::gil_scoped_release>())
-      .def("release", py::overload_cast<double>(&Gripper::release),
-           "width"_a, py::call_guard<py::gil_scoped_release>())
-      .def("release_relative", &Gripper::releaseRelative, "width_relative"_a, py::call_guard<py::gil_scoped_release>())
-      .def_property_readonly("state", &Gripper::get_state)
+      .def("stop_async", &Gripper::stopAsync)
+      .def_property_readonly("state", &Gripper::state)
       .def_property_readonly("server_version", (uint16_t (Gripper::*)()) &Gripper::serverVersion)
       .def_property_readonly("width", &Gripper::width)
-      .def_property_readonly("is_grasping", &Gripper::isGrasping);
+      .def_property_readonly("is_grasped", &Gripper::is_grasped)
+      .def_property_readonly("max_width", &Gripper::max_width);
 
   py::class_<Kinematics>(m, "Kinematics")
       .def_static("forward", &Kinematics::forward, "q"_a)
