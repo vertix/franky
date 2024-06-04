@@ -19,7 +19,6 @@ class CartesianWaypointMotion : public WaypointMotion<franka::CartesianPose, Car
  public:
   struct Params : WaypointMotion<franka::CartesianPose, CartesianState>::Params {
     Affine frame{Affine::Identity()};
-    WaypointMotion<franka::CartesianPose, CartesianState>::Params base_params{};
   };
 
   explicit CartesianWaypointMotion(const std::vector<Waypoint<CartesianState>> &waypoints);

@@ -14,7 +14,7 @@ CartesianWaypointMotion::CartesianWaypointMotion(const std::vector<Waypoint<Cart
 
 CartesianWaypointMotion::CartesianWaypointMotion(const std::vector<Waypoint<CartesianState>> &waypoints, Params params)
     : params_(std::move(params)),
-      WaypointMotion<franka::CartesianPose, CartesianState>(waypoints, params.base_params) {}
+      WaypointMotion<franka::CartesianPose, CartesianState>(waypoints, params) {}
 
 void CartesianWaypointMotion::initWaypointMotion(
     const franka::RobotState &robot_state,
