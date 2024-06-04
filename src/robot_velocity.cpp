@@ -23,8 +23,8 @@ RobotVelocity::RobotVelocity(const Vector7d &vector_repr)
 RobotVelocity::RobotVelocity(const franka::CartesianVelocities franka_velocity)
     : RobotVelocity(
     Twist{
-        Vector6d::Map(franka_velocity.O_dP_EE.data()).tail<3>(),
-        Vector6d::Map(franka_velocity.O_dP_EE.data()).head<3>()
+        Vector6d::Map(franka_velocity.O_dP_EE.data()).head<3>(),
+        Vector6d::Map(franka_velocity.O_dP_EE.data()).tail<3>()
     }, franka_velocity.elbow[0]) {}
 
 Vector7d RobotVelocity::vector_repr() const {
