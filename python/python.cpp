@@ -98,7 +98,13 @@ void mkMotionAndReactionClasses(py::module_ m, const std::string &control_signal
             double abs_time,
             const ControlSignalType &control_signal) {
           callback_executor.add([callback, robot_state, time_step, rel_time, abs_time, control_signal]() {
-            callback(robot_state, time_step, rel_time, abs_time, control_signal);
+            try {
+              callback(robot_state, time_step, rel_time, abs_time, control_signal);
+            } catch (const py::error_already_set &e) {
+              std::cerr << "Error in callback: " << std::endl;
+              py::gil_scoped_acquire gil_acquire;
+              PyErr_Print();
+            }
           });
         });
       }, "callback"_a);
@@ -113,7 +119,13 @@ void mkMotionAndReactionClasses(py::module_ m, const std::string &control_signal
         reaction.registerCallback([callback](
             const franka::RobotState &robot_state, double rel_time, double abs_time) {
           callback_executor.add([callback, robot_state, rel_time, abs_time]() {
-            callback(robot_state, rel_time, abs_time);
+            try {
+              callback(robot_state, rel_time, abs_time);
+            } catch (const py::error_already_set &e) {
+              py::gil_scoped_acquire gil_acquire;
+              std::cerr << "Error in callback: ";
+              PyErr_Print();
+            }
           });
         });
       }, "callback"_a);
@@ -123,7 +135,7 @@ template<typename ControlSignalType>
 void robotMove(Robot &robot, std::shared_ptr<Motion<ControlSignalType>> motion, bool async) {
   robot.move(motion, true);
   if (!async) {
-    auto future = std::async(std::launch::async, (bool(Robot::*)())&Robot::joinMotion, &robot);
+    auto future = std::async(std::launch::async, (bool (Robot::*)()) &Robot::joinMotion, &robot);
     // Check if python wants to terminate every 100 ms
     bool python_terminating = false;
     while (future.wait_for(std::chrono::milliseconds(100)) == std::future_status::timeout) {
@@ -266,7 +278,6 @@ PYBIND11_MODULE(_franky, m) {
 #define ERRORS ERRORS_0_8
 #define NUM_ERRORS 37
 #endif
-
 
 #define ADD_ERROR(unused, name) errors.def_property_readonly(#name, [](const franka::Errors &e) { return e.name; });
 #define UNPACK_ERRORS_INNER(tuple, itr, name) , tuple[itr + 1].cast<bool>()
@@ -470,7 +481,7 @@ PYBIND11_MODULE(_franky, m) {
               throw std::runtime_error("Invalid state!");
             return Affine().fromPositionOrientationScale(
                 t[0].cast<Eigen::Vector3d>(),
-                    Eigen::Quaterniond(t[1].cast<Eigen::Vector4d>()), Eigen::Vector3d::Ones());
+                Eigen::Quaterniond(t[1].cast<Eigen::Vector4d>()), Eigen::Vector3d::Ones());
           }
       ));
 
@@ -546,7 +557,9 @@ PYBIND11_MODULE(_franky, m) {
            [](const RobotVelocity &robot_velocity, const Affine &affine) { return affine * robot_velocity; },
            py::is_operator())
       .def("__rmul__",
-           [](const RobotVelocity &robot_velocity, const Eigen::Quaterniond &quaternion) { return quaternion * robot_velocity; },
+           [](const RobotVelocity &robot_velocity, const Eigen::Quaterniond &quaternion) {
+             return quaternion * robot_velocity;
+           },
            py::is_operator())
       .def("__repr__", robotVelocityToStr)
       .def(py::pickle(
@@ -563,7 +576,7 @@ PYBIND11_MODULE(_franky, m) {
 
   py::class_<CartesianState>(m, "CartesianState")
       .def(py::init<const RobotPose &>(), "pose"_a)
-      .def(py::init<const RobotPose &, const RobotVelocity &>(), "pose"_a,"velocity"_a)
+      .def(py::init<const RobotPose &, const RobotVelocity &>(), "pose"_a, "velocity"_a)
       .def(py::init<const CartesianState &>()) // Copy constructor
       .def("transform_with", &CartesianState::transformWith, "transform"_a)
       .def("change_end_effector_frame", &CartesianState::changeEndEffectorFrame, "transform"_a)
@@ -593,7 +606,7 @@ PYBIND11_MODULE(_franky, m) {
 
   py::class_<JointState>(m, "JointState")
       .def(py::init<const Vector7d &>(), "position"_a)
-      .def(py::init<const Vector7d &, const Vector7d &>(), "position"_a,"velocity"_a)
+      .def(py::init<const Vector7d &, const Vector7d &>(), "position"_a, "velocity"_a)
       .def(py::init<const JointState &>()) // Copy constructor
       .def_property_readonly("position", &JointState::position)
       .def_property_readonly("velocity", &JointState::velocity)
@@ -615,7 +628,6 @@ PYBIND11_MODULE(_franky, m) {
       ));
   py::implicitly_convertible<Vector7d, JointState>();
   py::implicitly_convertible<std::array<double, 7>, JointState>();
-
 
   py::class_<Kinematics::NullSpaceHandling>(m, "NullSpaceHandling")
       .def(py::init<size_t, double>(), "joint_index"_a, "value"_a)
@@ -722,7 +734,8 @@ PYBIND11_MODULE(_franky, m) {
            "force_constraints"_a = std::nullopt,
            "exponential_decay"_a = 0.005);
 
-  py::class_<CartesianImpedanceMotion, ImpedanceMotion, std::shared_ptr<CartesianImpedanceMotion>>(m, "CartesianImpedanceMotion")
+  py::class_<CartesianImpedanceMotion, ImpedanceMotion, std::shared_ptr<CartesianImpedanceMotion>>(m,
+                                                                                                   "CartesianImpedanceMotion")
       .def(py::init<>([](
                const Affine &target,
                double duration,
@@ -1020,11 +1033,11 @@ PYBIND11_MODULE(_franky, m) {
 
   py::class_<std::future<bool>>(m, "BoolFuture")
       .def("wait", [](const std::future<bool> &future, std::optional<double> timeout) {
-          if (timeout.has_value())
-            return future.wait_for(std::chrono::duration<double>(timeout.value())) == std::future_status::ready;
-          future.wait();
-          return true;
-        }, "timeout"_a = std::nullopt)
+        if (timeout.has_value())
+          return future.wait_for(std::chrono::duration<double>(timeout.value())) == std::future_status::ready;
+        future.wait();
+        return true;
+      }, "timeout"_a = std::nullopt)
       .def("get", &std::future<bool>::get);
 
   py::register_exception<franka::Exception>(m, "Exception");
