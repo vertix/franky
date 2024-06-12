@@ -1,17 +1,15 @@
-from argparse import ArgumentParser
-from time import sleep
-
-from franky import Robot
+import argparse
+from franky import RobotWebSession
 
 
-if __name__ == '__main__':
-    parser = ArgumentParser(description='Control Franka Emika Panda Desk interface remotely.')
-    parser.add_argument('--host', default='172.16.0.2', help='FCI IP of the robot')
-    parser.add_argument('--user', default='admin', help='user name to login into Franka Desk')
-    parser.add_argument('--password', help='password')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Unlock the brakes of a Franka robot.")
+    parser.add_argument("host", type=str, help="FCI IP of the robot")
+    parser.add_argument("user", type=str, help="Login username of Franka desk")
+    parser.add_argument("password", type=str, help="Login password of Franka Desk.")
 
     args = parser.parse_args()
 
-    with Robot(args.host, args.user, args.password) as api:
-        # api.lock_brakes()
-        api.unlock_brakes()
+    with RobotWebSession(args.host, args.user, args.password) as robot_web_session:
+        # robot_web_session.lock_brakes()
+        robot_web_session.unlock_brakes()
