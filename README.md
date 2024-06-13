@@ -31,6 +31,9 @@ Franky is a high-level motion library (both C++ and Python) for the Franka Emika
 It adds a Python wrapper around [libfranka](https://frankaemika.github.io/docs/libfranka.html), while replacing necessary real-time programming with higher-level motion commands.
 As franky focuses on making real-time trajectory generation easy, it allows the robot to react to unforeseen events.
 
+Check out the [tutorial](#tutorial) and the [examples](https://github.com/TimSchneider42/franky/tree/master/examples) for an introduction.
+The full documentation can be found at [https://timschneider42.github.io/franky/](https://timschneider42.github.io/franky/).
+
 
 ## Differences to frankx
 Franky is a fork of [frankx](https://github.com/pantor/frankx), though both codebase and functionality differ substantially from frankx by now.
@@ -548,11 +551,6 @@ else:
     success_future.wait()
     print("Gripper motion timed out.")
 ```
-
-## Documentation
-
-An auto-generated documentation can be found at [https://timschneider42.github.io/franky/](https://timschneider42.github.io/franky/).
-Moreover, there are multiple examples for both C++ and Python in the [examples](https://github.com/TimSchneider42/franky/tree/master/examples) directory. 
 
 
 ## Development
