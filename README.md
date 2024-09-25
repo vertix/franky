@@ -125,7 +125,7 @@ make
 make install
 ```
 
-To use franky, you can also include it as a subproject in your parent CMake via `add_subdirectory(franky)` and then `target_link_libraries(<target> libfranky)`. 
+To use franky, you can also include it as a subproject in your parent CMake via `add_subdirectory(franky)` and then `target_link_libraries(<target> franky)`. 
 
 If you need only the Python module, you can install franky via
 ```bash
@@ -179,10 +179,10 @@ using namespace franky;
 Robot robot("172.16.0.2");
 
 // Reduce velocity and acceleration of the robot
-robot.setDynamicRel(0.05);
+robot.setRelativeDynamicsFactor(0.05);
 
 // Move the end-effector 20cm in positive x-direction
-auto motion = CartesianMotion(RobotPose(Affine({0.2, 0.0, 0.0}), 0.0), ReferenceType::Relative);
+auto motion = std::make_shared<CartesianMotion>(RobotPose(Affine({0.2, 0.0, 0.0}), 0.0), ReferenceType::Relative);
 
 // Finally move the robot
 robot.move(motion);
