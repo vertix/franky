@@ -63,7 +63,7 @@ Otherwise, you might see `communication_constrains_violation` errors.
 
 To check whether your system is currently using a real-time kernel, type `uname -a`.
 You should see something like this:
-```bash
+```
 $ uname -a
 Linux [PCNAME] 5.15.0-1056-realtime #63-Ubuntu SMP PREEMPT_RT ...
 ```
