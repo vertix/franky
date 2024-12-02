@@ -1,4 +1,4 @@
-FROM quay.io/pypa/manylinux2014_x86_64:latest
+FROM quay.io/pypa/manylinux_2_34_x86_64:latest
 
 LABEL maintainer="Tim Schneider <tim@robot-learning.de>"
 
