@@ -78,6 +78,6 @@ setup(
         "Programming Language :: C++",
     ],
     install_requires=["numpy"],
-    python_requires=">=3.8",
+    python_requires=">=3.7",
     zip_safe=False,
 )
