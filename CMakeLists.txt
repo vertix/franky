@@ -26,7 +26,14 @@ endif ()
 message("Found Eigen Version: ${Eigen3_VERSION}")
 message("Found Franka Version: ${Franka_VERSION}")
 
+# Disabling examples and python modules of ruckig
+set(BUILD_EXAMPLES_TMP ${BUILD_EXAMPLES})
+set(BUILD_EXAMPLES OFF)
+set(BUILD_PYTHON_MODULE_TMP ${BUILD_PYTHON_MODULE})
+set(BUILD_PYTHON_MODULE OFF)
 add_subdirectory(ruckig)
+set(BUILD_EXAMPLES ${BUILD_EXAMPLES_TMP})
+set(BUILD_PYTHON_MODULE ${BUILD_PYTHON_MODULE_TMP})
 
 file(GLOB_RECURSE SRC "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 add_library(franky ${SRC})
