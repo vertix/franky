@@ -8,14 +8,14 @@ on:
         type: string
 
 env:
-  PYBIN_SUPPORTED_VERSIONS: "cp3(7m|8|9|10|11|12)"
+  PYBIN_SUPPORTED_VERSIONS: "cp3(8|9|10|11|12)"
 
 jobs:
   build_wheels:
     runs-on: ubuntu-latest
 
     container:
-      image: quay.io/pypa/manylinux2014_x86_64
+      image: quay.io/pypa/manylinux_2_35
 
     steps:
       - name: Checkout repository and submodules
