@@ -560,7 +560,7 @@ Franky is written in C++17 and Python3.7. It is currently tested against followi
 
 - Libfranka v0.7.1, v0.8.0, v0.9.2, v0.10.0, v0.11.0, v0.12.1, v0.13.3
 - Eigen v3.4.0
-- Pybind11 v2.11.1
+- Pybind11 v2.13.6
 - Python 3.7, 3.8, 3.9, 3.10, 3.11, 3.12
 - Catch2 v2.13.8 (for testing only)
 
