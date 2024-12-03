@@ -59,7 +59,7 @@ with (Path(__file__).resolve().parent / "VERSION").open() as f:
 setup(
     name="franky-panda",
     version=version,
-    description="High-Level Motion Library for the Franka Panda Robot (fork of frankx)",
+    description="High-level motion library for Franka robots.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Tim Schneider",
