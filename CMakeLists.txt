@@ -37,10 +37,15 @@ target_link_libraries(franky PUBLIC Franka::Franka Eigen3::Eigen ruckig)
 
 
 if (BUILD_PYTHON_MODULE)
-    # Find Python with both Interpreter and Development components
+    # Force CMake to use Python from the current conda environment
+    set(PYBIND11_FINDPYTHON ON)
+    set(Python3_FIND_STRATEGY LOCATION)
+    set(Python3_ROOT_DIR $ENV{CONDA_PREFIX})
+
+    # Find Python first
     find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 
-    # Find or add pybind11
+    # Then find pybind11 (it will use the Python we just found)
     if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/pybind11)
         add_subdirectory(pybind11)
     else ()
