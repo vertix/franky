@@ -397,14 +397,21 @@ class Robot : public franka::Robot {
    * @param q0 The initial guess for the joint positions.
    * @return A vector containing the joint positions.
    */
-  [[nodiscard]] static Vector7d inverseKinematics(const Affine &target, const Vector7d &q0);
+  [[nodiscard]] Vector7d inverseKinematics(const Affine &target, const Vector7d &q0);
 
   /**
    * @brief Calculate the forward kinematics for the given joint positions.
    * @param q The joint positions.
    * @return The forward kinematics.
    */
-  [[nodiscard]] static Affine forwardKinematics(const Vector7d &q);
+  [[nodiscard]] Affine forwardKinematics(const Vector7d &q);
+
+  /**
+   * @brief Calculate the Jacobian for the given joint positions.
+   * @param q The joint positions.
+   * @return The Jacobian.
+   */
+  [[nodiscard]] Jacobian jacobian(const Vector7d &q);
 
  private:
   template<typename ControlSignalType>
@@ -428,9 +435,16 @@ class Robot : public franka::Robot {
   std::exception_ptr control_exception_;
   std::thread control_thread_;
   MotionGeneratorVariant motion_generator_{std::nullopt};
+  std::unique_ptr<franka::Model> model_;
+  std::unique_ptr<std::array<double, 16>> F_T_EE_;
+  std::unique_ptr<std::array<double, 16>> EE_T_K_;
   bool motion_generator_running_{false};
 
   [[nodiscard]] bool is_in_control_unsafe() const;
+
+  franka::Model* lazyModel();
+  std::array<double, 16>& lazy_F_T_EE();
+  std::array<double, 16>& lazy_EE_T_K();
 
   template<class Rep = long, class Period = std::ratio<1>>
   bool joinMotionUnsafe(

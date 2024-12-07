@@ -12,4 +12,6 @@ using Euler = Eigen::EulerAngles<double, Eigen::EulerSystemXYZ>;
 
 using Affine = Eigen::Affine3d;
 
+using Jacobian = Eigen::Matrix<double, 6, 7>;
+
 }

@@ -1015,8 +1015,9 @@ PYBIND11_MODULE(_franky, m) {
       .def_property_readonly_static("max_joint_jerk", [](py::object) {
         return Vector7d::Map(Robot::max_joint_jerk.data());
       }, "[rad/s^3]")
-      .def_static("forward_kinematics", &Robot::forwardKinematics, "q"_a)
-      .def_static("inverseKinematics", &Robot::inverseKinematics, "target"_a, "q0"_a);
+      .def("forward_kinematics", &Robot::forwardKinematics, "q"_a)
+      .def("jacobian", &Robot::jacobian, "q"_a)
+      .def("inverse_kinematics", &Robot::inverseKinematics, "target"_a, "q0"_a);
 
   py::class_<std::future<bool>>(m, "BoolFuture")
       .def("wait", [](const std::future<bool> &future, std::optional<double> timeout) {

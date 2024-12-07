@@ -7,6 +7,57 @@
 
 namespace franky {
 
+namespace {
+
+using Matrix6d = Eigen::Matrix<double, 6, 6>;
+using Matrix7d = Eigen::Matrix<double, 7, 7>;
+
+Eigen::Matrix<double, 6, 1> computeError(const Affine& x_cur, const Affine& target) {
+    Eigen::Matrix<double, 6, 1> error;
+    // Position error
+    error.head<3>() = x_cur.translation() - target.translation();
+
+    // Rotation error
+    Eigen::Matrix3d R_cur = x_cur.linear();
+    Eigen::Matrix3d R_target = target.linear();
+    Eigen::Matrix3d R_error = R_cur.transpose() * R_target;
+
+    Eigen::AngleAxisd rot_vec(R_error);
+    error.tail<3>() = -R_cur * (rot_vec.angle() * rot_vec.axis());
+
+    return error;
+}
+
+double lineSearch(
+    Robot* robot,
+    const Vector7d& q,
+    const Vector7d& dq,
+    const Eigen::Matrix<double, 6, 1>& e_current,
+    const Affine& target,
+    double alpha = 1.0,
+    double beta = 0.5,
+    int max_steps = 10) {
+
+    double current_error_norm = e_current.norm();
+    double step_size = alpha;
+
+    for (int i = 0; i < max_steps; ++i) {
+        Vector7d q_new = q + step_size * dq;
+        Affine x_new = robot->forwardKinematics(q_new);
+        Eigen::Matrix<double, 6, 1> e_new = computeError(x_new, target);
+
+        if (e_new.norm() < current_error_norm) {
+            return step_size;
+        }
+
+        step_size *= beta;
+    }
+
+    return step_size;
+}
+
+} // anonymous namespace
+
 //! Connects to a robot at the given FCI IP address.
 Robot::Robot(const std::string &fci_hostname) : Robot(fci_hostname, Params()) {}
 
@@ -37,32 +88,78 @@ Vector7d Robot::currentJointVelocities() {
   return currentJointState().velocity();
 }
 
-Affine Robot::forwardKinematics(const Vector7d &q) {
-  return Kinematics::forward(q);
+franka::Model* Robot::lazyModel() {
+  if (!model_) {
+    model_ = std::make_unique<franka::Model>(loadModel());
+  }
+  return model_.get();
 }
 
-Vector7d Robot::inverseKinematics(const Affine &target, const Vector7d &q0) {
-  Vector7d result;
-
-  Eigen::Vector3d angles = Euler(target.rotation()).angles();
-  Eigen::Vector3d angles_norm;
-  angles_norm << angles[0] - M_PI, M_PI - angles[1], angles[2] - M_PI;
-
-  if (angles_norm[1] > M_PI) {
-    angles_norm[1] -= 2 * M_PI;
+std::array<double, 16>& Robot::lazy_F_T_EE() {
+  if (!F_T_EE_) {
+    F_T_EE_ = std::make_unique<std::array<double, 16>>(state().F_T_EE);
   }
-  if (angles_norm[2] < -M_PI) {
-    angles_norm[2] += 2 * M_PI;
+  return *F_T_EE_;
+}
+
+std::array<double, 16>& Robot::lazy_EE_T_K() {
+  if (!EE_T_K_) {
+    EE_T_K_ = std::make_unique<std::array<double, 16>>(state().EE_T_K);
   }
+  return *EE_T_K_;
+}
 
-  if (angles.norm() < angles_norm.norm()) {
-    angles_norm = angles;
-  }
+Affine Robot::forwardKinematics(const Vector7d &q) {
+  std::array<double, 7> q_array;
+  for (size_t i = 0; i < 7; ++i) { q_array[i] = q[i]; }
 
-  Eigen::Matrix<double, 6, 1> x_target;
-  x_target << target.translation(), angles;
+  std::array<double, 16> pose = lazyModel()->pose(franka::Frame::kEndEffector, q_array, lazy_F_T_EE(), lazy_EE_T_K());
+  return Affine(Eigen::Matrix4d::Map(pose.data()));
+}
 
-  return Kinematics::inverse(x_target, q0);
+Jacobian Robot::jacobian(const Vector7d &q) {
+  std::array<double, 7> q_array;
+  for (size_t i = 0; i < 7; ++i) { q_array[i] = q[i]; }
+
+  std::array<double, 42> jacobian_array = lazyModel()->zeroJacobian(
+    franka::Frame::kEndEffector, q_array, lazy_F_T_EE(), lazy_EE_T_K());
+  return Eigen::Map<const Jacobian>(jacobian_array.data());
+}
+
+Vector7d Robot::inverseKinematics(const Affine& target, const Vector7d& q0) {
+    Vector7d q = q0;
+    Matrix7d I = Matrix7d::Identity();
+    const double k0 = 0.01;
+    const int max_iterations = 50;
+    const double tol = 1e-4;
+    const double min_step = 1e-6;
+    const double pinv_reg = 0.1;
+
+    for (int i = 0; i < max_iterations; ++i) {
+        Affine x = this->forwardKinematics(q);
+        Eigen::Matrix<double, 6, 1> e = computeError(x, target);
+
+        double error_norm = e.norm();
+        if (error_norm < tol)
+            break;
+
+        Jacobian j = this->jacobian(q);
+        Eigen::Matrix<double, 7, 6> j_inv = j.transpose() * (j * j.transpose() + pinv_reg * Matrix6d::Identity()).inverse();
+
+        Matrix7d N = I - j_inv * j;
+        Vector7d dq_primary = -j_inv * e;
+        Vector7d dq_null = N * (-k0 * std::exp(error_norm) * q);
+        Vector7d dq = dq_primary + dq_null;
+
+        double step_size = lineSearch(this, q, dq, e, target, 1.0, 0.8, 20);
+        if (step_size < min_step) {
+            break;
+        }
+
+        q += step_size * dq;
+    }
+
+    return q;
 }
 
 franka::RobotState Robot::state() {
