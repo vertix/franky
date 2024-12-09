@@ -33,7 +33,7 @@ class CMakeBuild(build_ext):
         ext_dir = Path(self.get_ext_fullpath(ext.name)).parent.resolve()
 
         build_type = os.environ.get("BUILD_TYPE", "Release")
-        build_args = ["--config", build_type]
+        build_args = ["--config", build_type, "--parallel", "4"]
 
         cmake_args = [
             "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}/".format(ext_dir),

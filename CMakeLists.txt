@@ -5,6 +5,8 @@ project(franky VERSION ${version} LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
+list(APPEND CMAKE_PREFIX_PATH "/usr/local")
+
 include(GNUInstallDirs)
 
 option(BUILD_EXAMPLES "Build example programs" ON)
@@ -35,33 +37,45 @@ target_link_libraries(franky PUBLIC Franka::Franka Eigen3::Eigen ruckig)
 
 
 if (BUILD_PYTHON_MODULE)
-    if (NOT DEFINED PYTHON_EXECUTABLE)
-        find_package(Python3 COMPONENTS Interpreter Development)
-        set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
-    endif ()
+    # Force CMake to use Python from the current conda environment
+    set(PYBIND11_FINDPYTHON ON)
+    set(Python3_FIND_STRATEGY LOCATION)
+    set(Python3_ROOT_DIR $ENV{CONDA_PREFIX})
 
-    # Check if pybind11 exists as a subdirectory
-    if (EXISTS pybind11)
+    # Find Python first
+    find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+
+    # Then find pybind11 (it will use the Python we just found)
+    if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/pybind11)
         add_subdirectory(pybind11)
     else ()
-        find_package(pybind11 2.6 REQUIRED)
+        find_package(pybind11 REQUIRED)
     endif ()
 
+    # Build Python module
     file(GLOB_RECURSE PYTHON_SRC "${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp")
     pybind11_add_module(_franky-lib ${PYTHON_SRC})
     target_link_libraries(_franky-lib PUBLIC franky)
     set_target_properties(_franky-lib PROPERTIES OUTPUT_NAME "_franky")
 
+
+    # Set include directories explicitly
+    target_include_directories(_franky-lib PRIVATE
+        ${Python3_INCLUDE_DIRS}
+        ${pybind11_INCLUDE_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
+
     if (BUILD_PYTHON_STUBS)
-        # Build stubs
         add_custom_target(
-                franky-stubs
-                ${CMAKE_SOURCE_DIR}/generate_stubs.bash "${PYTHON_EXECUTABLE}" "${CMAKE_CURRENT_BINARY_DIR}" "$<TARGET_FILE:_franky-lib>"
-                COMMENT "Generating Python stubs..."
-                DEPENDS _franky-lib
+            franky-stubs
+            COMMAND ${CMAKE_SOURCE_DIR}/generate_stubs.bash
+                    ${Python3_EXECUTABLE}
+                    ${CMAKE_CURRENT_BINARY_DIR}
+                    $<TARGET_FILE:_franky-lib>
+            DEPENDS _franky-lib
         )
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/stubs/_franky-stubs/__init__.pyi DESTINATION lib OPTIONAL)
-
         add_custom_target(_franky
                 DEPENDS _franky-lib
                 DEPENDS franky-stubs)
@@ -98,4 +112,20 @@ install(TARGETS franky
         LIBRARY DESTINATION lib
         RUNTIME DESTINATION bin
         INCLUDES DESTINATION include
+)
+
+# Find gperftools - specify exact paths
+find_library(GPERFTOOLS_PROFILER profiler PATHS /usr/lib/x86_64-linux-gnu REQUIRED)
+if(NOT GPERFTOOLS_PROFILER)
+    message(FATAL_ERROR "gperftools profiler not found. Please install google-perftools and libgoogle-perftools-dev")
+endif()
+
+# Add benchmarks
+add_executable(ik-benchmark "benchmarks/inverse_kinematics_benchmark.cpp")
+target_include_directories(ik-benchmark PRIVATE ${GPERFTOOLS_INCLUDE_DIR})
+target_compile_options(ik-benchmark PRIVATE -g)  # Add debug symbols
+target_link_options(ik-benchmark PRIVATE -Wl,--no-as-needed)  # Force linking
+target_link_libraries(ik-benchmark PRIVATE
+    franky
+    ${GPERFTOOLS_PROFILER}
 )
