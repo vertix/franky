@@ -27,6 +27,7 @@ void run_ik_benchmark(Robot* robot, const Affine& target, int num_trials) {
     }
 
     // Run the benchmark
+    std::vector<double> error_values;
     for (int i = 0; i < num_trials; i++) {
         Vector7d result = robot->inverseKinematics(target, initial_configs[i]);
 
@@ -35,7 +36,26 @@ void run_ik_benchmark(Robot* robot, const Affine& target, int num_trials) {
         Vector6d error;
         error.head<3>() = result_pose.translation() - target.translation();
         error.tail<3>() = result_pose.rotation().eulerAngles(2,1,0) - target.rotation().eulerAngles(2,1,0);
+        error_values.push_back(error.norm());
     }
+
+    // Print the error values
+    // Sort error values to compute percentiles
+    std::sort(error_values.begin(), error_values.end());
+
+    // Calculate statistics
+    double avg = std::accumulate(error_values.begin(), error_values.end(), 0.0) / error_values.size();
+    double median = error_values[error_values.size() / 2];
+    double p75 = error_values[error_values.size() * 75 / 100];
+    double p95 = error_values[error_values.size() * 95 / 100];
+    double p99 = error_values[error_values.size() * 99 / 100];
+
+    std::cout << "Error statistics:\n"
+              << "  Average: " << avg << "\n"
+              << "  Median:  " << median << "\n"
+              << "  75th percentile: " << p75 << "\n"
+              << "  95th percentile: " << p95 << "\n"
+              << "  99th percentile: " << p99 << std::endl;
 }
 
 int main(int argc, char** argv) {

@@ -146,8 +146,9 @@ Vector7d Robot::inverseKinematics(const Affine& target, const Vector7d& q0) {
         Jacobian j = this->jacobian(q);
         Eigen::Matrix<double, 7, 6> j_inv = j.transpose() * (j * j.transpose() + pinv_reg * Matrix6d::Identity()).inverse();
 
-        Matrix7d N = I - j_inv * j;
         Vector7d dq_primary = -j_inv * e;
+        // Null space handling by minimizing the sum of joint angles (i.e. getting them closer to middle position)
+        Matrix7d N = I - j_inv * j;
         Vector7d dq_null = N * (-k0 * std::exp(error_norm) * q);
         Vector7d dq = dq_primary + dq_null;
 
