@@ -26,8 +26,8 @@ void CartesianImpedanceMotion::initImpl(
 std::tuple<Affine, bool>
 CartesianImpedanceMotion::update(const franka::RobotState &robot_state, franka::Duration time_step, double time) {
   double transition_parameter = time / duration_;
-  Affine intermediate_goal;
-  bool done;
+  Affine intermediate_goal = target();
+  bool done = false;
   if (transition_parameter <= 1.0) {  // [ms] to [s]
     Eigen::Quaterniond q_start(initial_pose_.rotation());
     Eigen::Quaterniond q_end(target().rotation());

@@ -387,7 +387,7 @@ class Robot : public franka::Robot {
    */
   inline void move(const std::shared_ptr<Motion<franka::Torques>> &motion, bool async = false) {
     moveInternal<franka::Torques>(motion, [this](const ControlFunc<franka::Torques> &m) {
-      control(m);
+      control(m, true);
     }, async);
   }
 
